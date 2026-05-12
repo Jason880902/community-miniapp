@@ -1,0 +1,259 @@
+.page {
+  min-height: 100vh;
+  background: #EDF4FF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-body {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+}
+
+/* ===== Logo 艺术字 ===== */
+.logo-area {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.logo {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, #1A6EFF 0%, #4F46E5 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 8px rgba(26, 110, 255, 0.15);
+}
+.subtitle {
+  font-size: 14px;
+  color: #6B7280;
+  letter-spacing: 3px;
+  margin-top: 10px;
+  display: block;
+  font-weight: 400;
+}
+
+/* ===== 用户信息预览 ===== */
+.user-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+/* ===== 用户协议勾选 ===== */
+.agreement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.agreement-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid #D1D5DB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+.checkbox.checked {
+  background: #1A6EFF;
+  border-color: #1A6EFF;
+}
+.checkmark {
+  font-size: 10px;
+  color: white;
+  font-weight: 700;
+  line-height: 1;
+}
+.agreement-text {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 16px;
+}
+.agreement-link {
+  font-size: 13px;
+  color: #1A6EFF;
+  line-height: 16px;
+}
+
+/* ===== 授权按钮 ===== */
+.auth-btn {
+  width: 240px;
+  height: 48px;
+  border-radius: 24px;
+  background: #1A6EFF;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  line-height: 48px;
+}
+.auth-btn:active { opacity: 0.9; }
+.auth-btn[disabled] { background: #93B8FF; color: white; }
+.auth-btn::after { border: none; }
+
+/* ===== 小区选择弹窗 ===== */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 90;
+}
+
+.community-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  z-index: 100;
+  padding: 16px 24px 32px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: #E5E7EB;
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.sheet-title {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 快捷操作 */
+.sheet-actions { margin-bottom: 16px; }
+.sheet-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.sheet-action:active { background: #F3F4F6; }
+.action-icon { font-size: 22px; flex-shrink: 0; }
+.action-text { flex: 1; display: flex; flex-direction: column; }
+.action-label { font-size: 15px; font-weight: 600; color: #1F2937; }
+.action-desc { font-size: 12px; color: #6B7280; margin-top: 1px; }
+.action-arrow { font-size: 18px; color: #9CA3AF; }
+.action-loading { font-size: 12px; color: #1A6EFF; }
+
+/* 分割线 */
+.sheet-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+}
+.sheet-divider::before,
+.sheet-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #EDEDED;
+}
+.divider-text {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0 12px;
+}
+
+/* 搜索 */
+.sheet-search { margin-bottom: 8px; }
+.sheet-input {
+  width: 100%;
+  height: 44px;
+  border: 2px solid #EDEDED;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 15px;
+  box-sizing: border-box;
+  color: #1F2937;
+}
+
+/* 小区列表 */
+.sheet-suggest {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  border: 1px solid #EDEDED;
+  border-radius: 10px;
+}
+.suggest-item {
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #1F2937;
+  border-bottom: 1px solid #F3F4F6;
+}
+.suggest-item:last-child { border-bottom: none; }
+.suggest-item:active { background: #EFF6FF; }
+
+.confirm-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  background: #1A6EFF;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-top: 12px;
+}
+.confirm-btn:active { opacity: 0.9; }
+.confirm-btn[disabled] { background: #D1D5DB; color: white; }
+.confirm-btn::after { border: none; }

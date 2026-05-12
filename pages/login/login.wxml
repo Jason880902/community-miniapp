@@ -1,0 +1,72 @@
+<view class="page">
+  <view class="login-body">
+    <view class="logo-area">
+      <text class="logo">邻里</text>
+      <text class="subtitle">社区旧物爱心分享</text>
+    </view>
+
+    <!-- 已授权的用户信息 -->
+    <view wx:if="{{nickName}}" class="user-preview">
+      <image class="user-avatar" src="{{avatarUrl}}" mode="aspectFill" />
+      <text class="user-name">{{nickName}}</text>
+    </view>
+
+    <!-- 用户协议勾选 -->
+    <view class="agreement" bindtap="toggleAgreement">
+      <view class="agreement-row">
+        <view class="checkbox {{agreed ? 'checked' : ''}}">
+          <text wx:if="{{agreed}}" class="checkmark">{{icons.check}}</text>
+        </view>
+        <text class="agreement-text">已阅读并同意</text>
+      </view>
+      <text class="agreement-link" catchtap="showAgreement">《用户协议》</text>
+    </view>
+
+    <!-- 授权按钮 -->
+    <button wx:if="{{!nickName && !authing}}" class="auth-btn" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo" disabled="{{!agreed}}">
+      进入邻里
+    </button>
+    <button wx:elif="{{authing && !nickName}}" class="auth-btn" disabled>授权中…</button>
+  </view>
+
+  <!-- 小区选择弹窗 -->
+  <view wx:if="{{showCommunity}}" class="mask" bindtap="closeCommunity"></view>
+  <view wx:if="{{showCommunity}}" class="community-sheet">
+    <view class="sheet-handle"></view>
+    <text class="sheet-title">选择你的小区</text>
+
+    <view class="sheet-actions">
+      <view class="sheet-action" bindtap="autoLocate">
+        <text class="action-icon">📍</text>
+        <view class="action-text">
+          <text class="action-label">定位当前小区</text>
+          <text class="action-desc">使用GPS定位你所在的小区</text>
+        </view>
+        <text wx:if="{{locating}}" class="action-loading">定位中…</text>
+        <text wx:else class="action-arrow">{{icons.arrow}}</text>
+      </view>
+      <view class="sheet-action" bindtap="chooseFromMap">
+        <text class="action-icon">🗺️</text>
+        <view class="action-text">
+          <text class="action-label">从地图选择</text>
+          <text class="action-desc">在地图上标记你的小区位置</text>
+        </view>
+        <text class="action-arrow">{{icons.arrow}}</text>
+      </view>
+    </view>
+
+    <view class="sheet-divider">
+      <text class="divider-text">或搜索小区名称</text>
+    </view>
+
+    <view class="sheet-search">
+      <input class="sheet-input" placeholder="输入小区名称搜索…" bindinput="onCommunityInput" value="{{community}}" />
+    </view>
+
+    <view wx:if="{{suggestions.length > 0}}" class="sheet-suggest">
+      <view class="suggest-item" wx:for="{{suggestions}}" wx:key="*this" bindtap="selectSuggest" data-name="{{item}}">{{item}}</view>
+    </view>
+
+    <button class="confirm-btn" disabled="{{!community}}" bindtap="confirmCommunity">确认小区</button>
+  </view>
+</view>

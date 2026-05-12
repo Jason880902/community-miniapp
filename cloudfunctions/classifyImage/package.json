@@ -1,0 +1,9 @@
+{
+  "name": "classifyImage",
+  "version": "1.0.0",
+  "description": "图片分类云函数 - 识别旧物类别",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

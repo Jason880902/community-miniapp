@@ -1,0 +1,112 @@
+<view class="page">
+  <view class="page-inner">
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="goBack">
+      <text class="nav-back-icon">{{icons.back}}</text>
+      <text class="nav-back-text">返回</text>
+    </view>
+    <text class="nav-title">{{partnerName}}</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <scroll-view class="chat-body" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
+    <view wx:if="{{messages.length === 0}}" class="empty-hint">
+      <text>开始聊天吧</text>
+    </view>
+    <block wx:for="{{messages}}" wx:key="id" id="msg-{{index}}">
+      <!-- 文本消息 -->
+      <view wx:if="{{item.type === 'text' || !item.type}}" class="msg {{item.isSent ? 'sent' : 'received'}}">
+        <text class="msg-text">{{item.content}}</text>
+        <text class="msg-time">{{item.time}}</text>
+      </view>
+
+      <!-- 语音消息 -->
+      <view wx:elif="{{item.type === 'voice'}}" class="msg voice {{item.isSent ? 'sent' : 'received'}} {{playingId === item.id ? 'playing' : ''}}" bindtap="playVoice" data-id="{{item.id}}">
+        <view class="voice-inner">
+          <text class="voice-icon">{{playingId === item.id ? '⏹' : '▶'}}</text>
+          <view class="voice-bar">
+            <view class="voice-bar-fill" style="width:{{Math.min(item.voiceDuration * 8, 100)}}%"></view>
+          </view>
+          <text class="voice-dur">{{item.voiceDuration}}"</text>
+        </view>
+        <text class="msg-time">{{item.time}}</text>
+      </view>
+
+      <!-- 图片消息 -->
+      <view wx:elif="{{item.type === 'image'}}" class="msg image {{item.isSent ? 'sent' : 'received'}}">
+        <image class="msg-image" src="{{item.imageUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.imageUrl}}" />
+        <text class="msg-time">{{item.time}}</text>
+      </view>
+
+      <!-- 通话记录 -->
+      <view wx:elif="{{item.type === 'call'}}" class="msg call-center">
+        <text class="call-log">{{item.callType === 'video' ? '📹' : '📞'}} {{item.content}}</text>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="input-area">
+    <!-- 模式切换 -->
+    <view class="input-toggle" bindtap="toggleInputMode">
+      <text wx:if="{{inputMode === 'text'}}" class="toggle-icon">🎤</text>
+      <text wx:else class="toggle-icon">⌨</text>
+    </view>
+
+    <!-- 文字输入 -->
+    <input wx:if="{{inputMode === 'text'}}" class="input-box" placeholder="输入消息…" bindinput="onInput" value="{{inputValue}}" confirm-type="send" bindconfirm="sendMessage" />
+
+    <!-- 录音按钮 -->
+    <view wx:else class="record-btn" bindtouchstart="startRecord" bindtouchend="stopRecord" bindtouchcancel="stopRecord">
+      <view class="record-inner {{recording ? 'recording' : ''}}">
+        <text wx:if="{{recording}}" class="record-hint">松开 发送</text>
+        <text wx:else class="record-hint">按住 说话</text>
+      </view>
+    </view>
+
+    <!-- 加号 -->
+    <view class="input-plus" bindtap="toggleActions">
+      <text class="plus-icon">+</text>
+    </view>
+
+    <!-- 发送 -->
+    <button wx:if="{{inputMode === 'text' && inputValue.length > 0}}" class="send-btn" bindtap="sendMessage">发送</button>
+  </view>
+
+  <!-- 操作面板 -->
+  <view wx:if="{{showActions}}" class="action-mask" bindtap="toggleActions"></view>
+  <view wx:if="{{showActions}}" class="action-sheet">
+    <view class="action-item" bindtap="sendImage">
+      <view class="action-icon-box camera">📷</view>
+      <text class="action-label">拍照</text>
+    </view>
+    <view class="action-item" bindtap="startVoiceCall">
+      <view class="action-icon-box call">📞</view>
+      <text class="action-label">语音通话</text>
+    </view>
+    <view class="action-item" bindtap="startVideoCall">
+      <view class="action-icon-box video">📹</view>
+      <text class="action-label">视频通话</text>
+    </view>
+  </view>
+
+  <!-- 通话界面 -->
+  <view wx:if="{{showCallUI}}" class="call-overlay">
+    <view class="call-card">
+      <view class="call-avatar">{{partnerName.charAt(0)}}</view>
+      <text class="call-name">{{partnerName}}</text>
+      <text class="call-type-label">{{callType === 'voice' ? '语音通话' : '视频通话'}}</text>
+      <text class="call-status-text">
+        <text wx:if="{{callStatus === 'calling'}}">呼叫中...</text>
+        <text wx:elif="{{callStatus === 'connected'}}">通话中</text>
+        <text wx:else>已结束</text>
+      </text>
+      <view class="call-btn-row">
+        <view wx:if="{{callStatus === 'calling'}}" class="call-btn decline" bindtap="declineCall">挂断</view>
+        <view wx:if="{{callStatus === 'calling'}}" class="call-btn accept" bindtap="acceptCall">接听</view>
+        <view wx:if="{{callStatus === 'connected'}}" class="call-btn hangup" bindtap="declineCall">挂断</view>
+      </view>
+    </view>
+  </view>
+  </view>
+</view>

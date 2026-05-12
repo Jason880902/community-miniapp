@@ -1,0 +1,58 @@
+<view class="page">
+  <view class="page-inner">
+  <!-- 自定义导航 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="goBack">
+      <text class="nav-back-icon">{{icons.back}}</text>
+      <text class="nav-back-text">返回</text>
+    </view>
+    <text class="nav-title">物品详情</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <scroll-view class="body" scroll-y>
+    <image wx:if="{{item.images && item.images.length > 0}}" class="detail-image" src="{{item.images[0]}}" mode="aspectFill" />
+    <view wx:else class="detail-image" style="background-color: {{item.catColor.bg}}">
+      <text class="detail-cat-label" style="color: {{item.catColor.text}}">{{item.category}}</text>
+    </view>
+
+    <view class="detail-card">
+      <text class="detail-title">{{item.title}}</text>
+      <view class="detail-tags">
+        <text class="item-tag category">{{item.category}}</text>
+        <text class="item-tag condition">{{item.condition}}</text>
+        <text class="status-badge {{item.status}}">{{item.status === 'available' ? '可领取' : '已被领取'}}</text>
+      </view>
+
+      <view class="detail-meta">
+        <view class="meta-item">
+          <text class="meta-label">所在楼栋</text>
+          <text class="meta-value">{{item.location}}</text>
+        </view>
+        <view class="meta-item">
+          <text class="meta-label">发布时间</text>
+          <text class="meta-value">{{item.time}}</text>
+        </view>
+      </view>
+
+      <view class="detail-owner">
+        <image wx:if="{{ownerAvatar}}" class="owner-avatar" src="{{ownerAvatar}}" mode="aspectFill" />
+        <view wx:else class="owner-avatar">{{ownerInitial}}</view>
+        <view class="owner-info">
+          <text class="owner-name">{{ownerName}}</text>
+          <text class="owner-community">{{ownerCommunity}}</text>
+        </view>
+      </view>
+
+      <text class="detail-desc">{{item.desc}}</text>
+    </view>
+
+    <view class="detail-actions">
+      <button wx:if="{{showRequest}}" class="action-btn primary" bindtap="requestItem">{{icons.heart}} 申请领取</button>
+      <button wx:elif="{{showApplied}}" class="action-btn disabled" disabled>{{icons.check}} 已申请，等待回复</button>
+      <button wx:if="{{showContact}}" class="action-btn secondary" bindtap="contactOwner">联系分享人</button>
+      <button wx:if="{{showMarkClaimed}}" class="action-btn secondary" bindtap="markClaimed">标记为已被领取</button>
+    </view>
+  </scroll-view>
+  </view>
+</view>

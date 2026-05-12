@@ -1,0 +1,90 @@
+<view class="page">
+  <view class="page-inner">
+    <!-- 顶部信息栏 -->
+    <view class="header">
+      <view class="header-left">
+        <text class="header-title">邻里</text>
+        <text class="header-location">{{community}}</text>
+      </view>
+      <view class="header-right" bindtap="goProfile">
+        <text class="header-msg" wx:if="{{unreadCount > 0}}" catchtap="goMessages">{{unreadCount}}</text>
+        <text class="header-avatar">{{userInitial}}</text>
+      </view>
+    </view>
+
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <input class="search-input" placeholder="搜索物品名称…" bindinput="onSearch" />
+    </view>
+
+    <!-- 分类标签 - 百叶窗折叠 -->
+    <view class="category-wrap">
+      <view class="category-list">
+        <view class="category-indicator" style="left: {{indicatorLeft}}px; width: {{indicatorWidth}}px;"></view>
+        <view
+          class="category-item {{selectedCat === 'all' ? 'active' : ''}}"
+          data-cat="all"
+          data-index="0"
+          bindtap="filterCategory">全部</view>
+        <view
+          class="category-item {{selectedCat === item ? 'active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="*this"
+          data-cat="{{item}}"
+          data-index="{{index + 1}}"
+          bindtap="filterCategory">{{item}}</view>
+      </view>
+    </view>
+
+    <!-- 物品列表 -->
+    <view wx:if="{{items.length > 0}}" class="items-grid">
+      <view class="item-card {{firstLoad ? '' : 'fold-in'}}" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail" style="animation-delay: {{index * 0.05}}s">
+        <view class="item-image" style="background-color: {{item.catColor.bg}}">
+          <text class="item-cat-label" style="color: {{item.catColor.text}}">{{item.category}}</text>
+        </view>
+        <view class="item-info">
+          <text class="item-title">{{item.title}}</text>
+          <view class="item-meta">
+            <text>{{item.ownerName}}</text>
+            <text>{{item.time}}</text>
+          </view>
+          <view class="item-tags">
+            <text class="tag category">{{item.category}}</text>
+            <text class="tag condition">{{item.condition}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state">
+      <text class="empty-text">暂无物品，试试其他分类</text>
+    </view>
+  </view>
+
+  <!-- 底部标签栏 -->
+  <view class="tab-bar">
+    <view class="tab-inner">
+      <view class="tab-item active">
+        <text class="tab-icon">{{icons.TAB_ICONS.home}}</text>
+        <text class="tab-label">首页</text>
+      </view>
+      <view class="tab-item" bindtap="goCommunity">
+        <text class="tab-icon">{{icons.TAB_ICONS.community}}</text>
+        <text class="tab-label">小区</text>
+      </view>
+      <view class="tab-item tab-post" bindtap="goPost">
+        <text class="tab-icon">{{icons.TAB_ICONS.post}}</text>
+        <text class="tab-label">发布</text>
+      </view>
+      <view class="tab-item" bindtap="goMessages">
+        <text class="tab-icon">{{icons.TAB_ICONS.msg}}</text>
+        <text class="tab-label">消息</text>
+        <view wx:if="{{unreadCount > 0}}" class="tab-badge">{{unreadCount}}</view>
+      </view>
+      <view class="tab-item" bindtap="goProfile">
+        <text class="tab-icon">{{icons.TAB_ICONS.me}}</text>
+        <text class="tab-label">我的</text>
+      </view>
+    </view>
+  </view>
+</view>

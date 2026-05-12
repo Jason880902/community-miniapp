@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/community/community",
+    "pages/detail/detail",
+    "pages/post/post",
+    "pages/messages/messages",
+    "pages/chat/chat",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F0F2F5",
+    "backgroundTextStyle": "dark"
+  },
+  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "需要获取你的位置信息以选择所在小区"
+    }
+  },
+  "cloud": true,
+  "sitemapLocation": "sitemap.json"
+}

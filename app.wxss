@@ -1,0 +1,91 @@
+/* ===== 全局设计令牌 ===== */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  color: #1F2937;
+  background: #F7F8FA;
+  -webkit-font-smoothing: antialiased;
+
+  /* 品牌色 — 瑞幸风格蓝 */
+  --primary: #1A6EFF;
+  --primary-light: #4A90FF;
+  --primary-dark: #0D5CD9;
+  --primary-bg: #EFF6FF;
+  --secondary: #22D3EE;
+  --secondary-light: #CFFAFE;
+  --success: #10B981;
+  --success-bg: #ECFDF5;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  /* 中性色 */
+  --text: #1F2937;
+  --text-secondary: #6B7280;
+  --text-light: #9CA3AF;
+  --border: #EDEDED;
+  --bg: #F7F8FA;
+  --card: #FFFFFF;
+
+  /* 间距系统 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 圆角系统 */
+  --radius-tag: 4px;
+  --radius-btn: 8px;
+  --radius-card: 12px;
+  --radius-modal: 20px;
+  --radius-pill: 999px;
+}
+
+/* ===== 通用组件 ===== */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: var(--radius-btn);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  transition: opacity 0.2s;
+}
+.btn:active { opacity: 0.85; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:disabled { background: var(--text-light); color: white; }
+.btn-secondary { background: white; color: var(--text); border: 2px solid var(--border); }
+.btn-block { width: 100%; }
+.btn-sm { height: 36px; padding: 0 16px; font-size: 14px; border-radius: var(--radius-btn); }
+
+.status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-tag);
+  font-weight: 500;
+}
+.status-badge.available { background: var(--success-bg); color: var(--success); }
+.status-badge.claimed { background: #FEF3C7; color: var(--warning); }
+
+.item-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-tag);
+}
+.item-tag.category { background: var(--primary-bg); color: var(--primary); }
+.item-tag.condition { background: var(--secondary-light); color: var(--secondary); }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  color: var(--text-light);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state text { font-size: 14px; }

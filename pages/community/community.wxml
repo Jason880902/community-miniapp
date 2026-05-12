@@ -1,0 +1,70 @@
+<view class="page">
+  <view class="page-inner">
+    <view class="nav-bar">
+      <text class="nav-title">小区</text>
+    </view>
+
+    <view class="community-banner">
+      <text class="community-icon">{{icons.TAB_ICONS.community}}</text>
+      <text class="community-name">{{communityName}}</text>
+    </view>
+
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-num">{{memberCount}}</text>
+        <text class="stat-label">小区成员</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{itemCount}}</text>
+        <text class="stat-label">分享物品</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{memberCount > 0 ? Math.ceil(itemCount/memberCount*10)/10 : 0}}</text>
+        <text class="stat-label">人均分享</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">小区成员</text>
+    </view>
+
+    <view class="member-list">
+      <view class="member-item" wx:for="{{members}}" wx:key="id">
+        <view class="member-avatar">{{item.name.charAt(0)}}</view>
+        <view class="member-info">
+          <text class="member-name">{{item.name}}</text>
+          <text class="member-community">{{item.community}}</text>
+        </view>
+      </view>
+      <view wx:if="{{members.length === 0}}" class="empty-hint">
+        <text>暂无其他成员</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部标签栏 -->
+  <view class="tab-bar">
+    <view class="tab-inner">
+      <view class="tab-item" bindtap="goHome">
+        <text class="tab-icon">{{icons.TAB_ICONS.home}}</text>
+        <text class="tab-label">首页</text>
+      </view>
+      <view class="tab-item active">
+        <text class="tab-icon">{{icons.TAB_ICONS.community}}</text>
+        <text class="tab-label">小区</text>
+      </view>
+      <view class="tab-item tab-post" bindtap="goPost">
+        <text class="tab-icon">{{icons.TAB_ICONS.post}}</text>
+        <text class="tab-label">发布</text>
+      </view>
+      <view class="tab-item" bindtap="goMessages">
+        <text class="tab-icon">{{icons.TAB_ICONS.msg}}</text>
+        <text class="tab-label">消息</text>
+      </view>
+      <view class="tab-item" bindtap="goProfile">
+        <text class="tab-icon">{{icons.TAB_ICONS.me}}</text>
+        <text class="tab-label">我的</text>
+      </view>
+    </view>
+  </view>
+</view>

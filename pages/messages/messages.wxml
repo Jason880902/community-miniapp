@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="page-inner">
+    <view class="nav-bar">
+      <text class="nav-title">消息</text>
+    </view>
+
+    <view wx:if="{{conversations.length > 0}}" class="list">
+      <view class="conversation-item" wx:for="{{conversations}}" wx:key="userId" data-userid="{{item.userId}}" bindtap="openChat">
+        <view class="conv-avatar">{{item.userName.charAt(0)}}</view>
+        <view class="conv-info">
+          <view class="conv-top">
+            <text class="conv-name">{{item.userName}}</text>
+            <text class="conv-time">{{item.lastTime}}</text>
+          </view>
+          <text class="conv-preview">{{item.lastMsg}}</text>
+          <text wx:if="{{item.itemTitle}}" class="conv-item">关于：{{item.itemTitle}}</text>
+        </view>
+        <view wx:if="{{item.unread > 0}}" class="conv-unread">{{item.unread}}</view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state">
+      <text>暂无消息</text>
+    </view>
+  </view>
+
+  <!-- 底部标签栏 -->
+  <view class="tab-bar">
+    <view class="tab-inner">
+      <view class="tab-item" bindtap="goHome">
+        <text class="tab-icon">{{icons.TAB_ICONS.home}}</text>
+        <text class="tab-label">首页</text>
+      </view>
+      <view class="tab-item" bindtap="goCommunity">
+        <text class="tab-icon">{{icons.TAB_ICONS.community}}</text>
+        <text class="tab-label">小区</text>
+      </view>
+      <view class="tab-item tab-post" bindtap="goPost">
+        <text class="tab-icon">{{icons.TAB_ICONS.post}}</text>
+        <text class="tab-label">发布</text>
+      </view>
+      <view class="tab-item active">
+        <text class="tab-icon">{{icons.TAB_ICONS.msg}}</text>
+        <text class="tab-label">消息</text>
+        <view wx:if="{{unreadCount > 0}}" class="tab-badge">{{unreadCount}}</view>
+      </view>
+      <view class="tab-item" bindtap="goProfile">
+        <text class="tab-icon">{{icons.TAB_ICONS.me}}</text>
+        <text class="tab-label">我的</text>
+      </view>
+    </view>
+  </view>
+</view>
