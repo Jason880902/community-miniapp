@@ -7,7 +7,8 @@
     "pages/post/post",
     "pages/messages/messages",
     "pages/chat/chat",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/admin/admin"
   ],
   "window": {
     "navigationStyle": "custom",

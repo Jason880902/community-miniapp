@@ -5,6 +5,16 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 管理员 OpenID 列表（韩大哥登录后替换）
+const ADMIN_OPENIDS = ['请替换为韩大哥的微信OpenID'];
+
+function requireAdmin() {
+  const wxContext = cloud.getWXContext();
+  if (!ADMIN_OPENIDS.includes(wxContext.OPENID)) {
+    throw new Error('无管理员权限');
+  }
+}
+
 // 标准化: 给对象补充 id 字段（兼容旧代码 item.id / user.id 写法）
 function normalize(val) {
   if (Array.isArray(val)) return val.map(normalize);
@@ -62,7 +72,7 @@ const HANDLERS = {
         if (Object.keys(updates).length > 0) {
           await db.collection('users').doc(user._id).update({ data: updates });
         }
-        return { ...user, ...updates };
+        return { ...user, ...updates, isAdmin: ADMIN_OPENIDS.includes(wxContext.OPENID) };
       }
     }
 
@@ -83,7 +93,7 @@ const HANDLERS = {
         if (Object.keys(updates).length > 0) {
           await db.collection('users').doc(user._id).update({ data: updates });
         }
-        return { ...user, ...updates };
+        return { ...user, ...updates, isAdmin: ADMIN_OPENIDS.includes(wxContext.OPENID) };
       }
     }
 
@@ -97,13 +107,18 @@ const HANDLERS = {
       createTime: Date.now()
     };
     const res = await db.collection('users').add({ data: newUser });
-    return { ...newUser, _id: res._id };
+    return { ...newUser, _id: res._id, isAdmin: ADMIN_OPENIDS.includes(wxContext.OPENID) };
   },
 
   async getCurrentUser({ userId }) {
     if (!userId) return null;
     const { data } = await db.collection('users').where({ userId }).limit(1).get();
-    return data[0] || null;
+    const user = data[0] || null;
+    if (user) {
+      const wxContext = cloud.getWXContext();
+      user.isAdmin = ADMIN_OPENIDS.includes(wxContext.OPENID);
+    }
+    return user;
   },
 
   async getUserById({ id }) {
@@ -369,6 +384,88 @@ const HANDLERS = {
   async getUserRequests({ userId }) {
     const { data } = await db.collection('requests').where({ userId }).get();
     return data;
+  },
+
+  // ===== 管理员 =====
+  async getAdminStats() {
+    requireAdmin();
+    const { data: users } = await db.collection('users').get();
+    const { data: items } = await db.collection('items').get();
+    const { data: requests } = await db.collection('requests').get();
+    const { total: msgCount } = await db.collection('messages').count();
+    const itemStatusCount = {};
+    const catCount = {};
+    items.forEach(i => {
+      itemStatusCount[i.status] = (itemStatusCount[i.status] || 0) + 1;
+      catCount[i.category] = (catCount[i.category] || 0) + 1;
+    });
+    const requestStatusCount = {};
+    requests.forEach(r => { requestStatusCount[r.status] = (requestStatusCount[r.status] || 0) + 1; });
+    return {
+      userCount: users.length,
+      itemCount: items.length,
+      requestCount: requests.length,
+      msgCount,
+      itemStatusCount,
+      catCount,
+      requestStatusCount
+    };
+  },
+
+  async adminGetAllUsers() {
+    requireAdmin();
+    const { data: users } = await db.collection('users').get();
+    const { data: items } = await db.collection('items').get();
+    const { data: requests } = await db.collection('requests').get();
+    const itemCount = {};
+    const requestCount = {};
+    items.forEach(i => { itemCount[i.userId] = (itemCount[i.userId] || 0) + 1; });
+    requests.forEach(r => { requestCount[r.userId] = (requestCount[r.userId] || 0) + 1; });
+    return users.map(u => ({
+      ...u,
+      itemCount: itemCount[u.userId] || 0,
+      requestCount: requestCount[u.userId] || 0
+    }));
+  },
+
+  async adminGetAllItems() {
+    requireAdmin();
+    const { data: items } = await db.collection('items').orderBy('createTime', 'desc').get();
+    const { data: users } = await db.collection('users').get();
+    const { data: requests } = await db.collection('requests').get();
+    const userMap = {};
+    users.forEach(u => { userMap[u.userId] = u; });
+    const reqCount = {};
+    requests.forEach(r => { reqCount[r.itemId] = (reqCount[r.itemId] || 0) + 1; });
+    return items.map(i => ({
+      ...i,
+      ownerName: userMap[i.userId] ? userMap[i.userId].name : '未知',
+      requestCount: reqCount[i.itemId] || 0
+    }));
+  },
+
+  async adminGetAllRequests() {
+    requireAdmin();
+    const { data: requests } = await db.collection('requests').orderBy('createTime', 'desc').get();
+    const { data: items } = await db.collection('items').get();
+    const { data: users } = await db.collection('users').get();
+    const itemMap = {};
+    items.forEach(i => { itemMap[i.itemId] = i; });
+    const userMap = {};
+    users.forEach(u => { userMap[u.userId] = u; });
+    return requests.map(r => ({
+      ...r,
+      itemTitle: itemMap[r.itemId] ? itemMap[r.itemId].title : '物品已删除',
+      userName: userMap[r.userId] ? userMap[r.userId].name : '未知'
+    }));
+  },
+
+  async adminDeleteItem({ itemId }) {
+    requireAdmin();
+    const { data } = await db.collection('items').where({ itemId }).limit(1).get();
+    if (data.length === 0) return { success: false };
+    await db.collection('items').doc(data[0]._id).remove();
+    return { success: true };
   },
 
   // ----- 初始化种子数据 -----

@@ -15,7 +15,8 @@ Page({
     showItems: false,
     myItems: [],
     showRequests: false,
-    myRequests: []
+    myRequests: [],
+    isAdmin: false
   },
 
   async onShow() {
@@ -25,12 +26,19 @@ Page({
       return;
     }
     const stats = await DB.getItemStats(user.id);
+    // 获取管理员状态
+    let isAdmin = false;
+    try {
+      const freshUser = await DB.getCurrentUser(user.id);
+      isAdmin = !!(freshUser && freshUser.isAdmin);
+    } catch (e) { /* 非管理员静默处理 */ }
     this.setData({
       userName: user.name,
       userInitial: user.name.charAt(0),
       userAvatar: user.avatarUrl || '',
       userCommunity: user.community,
-      stats
+      stats,
+      isAdmin
     });
     // 返回时自动刷新物品列表数据
     await this.fetchMyItems();
@@ -178,6 +186,10 @@ Page({
 
   goMyMessages() {
     wx.redirectTo({ url: '/pages/messages/messages' });
+  },
+
+  goAdmin() {
+    wx.navigateTo({ url: '/pages/admin/admin' });
   },
 
   logout() {

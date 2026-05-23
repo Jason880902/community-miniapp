@@ -115,6 +115,27 @@ async function getUserRequests(userId) {
   return call('getUserRequests', { userId });
 }
 
+// ===== 管理员 =====
+async function getAdminStats() {
+  return call('getAdminStats');
+}
+
+async function adminGetAllUsers() {
+  return call('adminGetAllUsers');
+}
+
+async function adminGetAllItems() {
+  return call('adminGetAllItems');
+}
+
+async function adminGetAllRequests() {
+  return call('adminGetAllRequests');
+}
+
+async function adminDeleteItem(itemId) {
+  return call('adminDeleteItem', { itemId });
+}
+
 module.exports = {
   CATEGORIES, CONDITIONS,
   getCurrentUser, setCurrentUser, getOrCreateUser,
@@ -122,6 +143,7 @@ module.exports = {
   getUserById, updateUserName, getAllUsers, getItemsByUser, addItem, updateItem, updateItemStatus, deleteItem, getItemStats,
   sendMessage, getConversations, getMessages, markRead, countUnread,
   addRequest, getPendingRequestsForItem, updateRequestStatus, getRequestsForItem, getUserRequests,
+  getAdminStats, adminGetAllUsers, adminGetAllItems, adminGetAllRequests, adminDeleteItem,
 
   // 兼容旧版同步调用: 已变更为 async
 };

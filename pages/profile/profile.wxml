@@ -52,6 +52,13 @@
         <text class="menu-text">我的消息</text>
         <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
       </view>
+      <view wx:if="{{isAdmin}}" class="menu-item" bindtap="goAdmin">
+        <view class="menu-icon-wrap menu-icon-amber">
+          <image class="menu-icon-img" src="/images/sparkles.png" mode="aspectFit" />
+        </view>
+        <text class="menu-text">管理后台</text>
+        <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
+      </view>
       <view class="menu-item danger" bindtap="logout">
         <view class="menu-icon-wrap menu-icon-gray">
           <image class="menu-icon-img" src="/images/logout.png" mode="aspectFit" />

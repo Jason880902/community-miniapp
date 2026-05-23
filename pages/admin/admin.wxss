@@ -1,0 +1,256 @@
+.page {
+  min-height: 100vh;
+  background: #F7F8FA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+.page-inner {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* ===== 导航栏 ===== */
+.nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-title { font-size: 17px; font-weight: 600; }
+.nav-placeholder { width: 60px; }
+
+/* ===== Tab 栏 ===== */
+.admin-tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid #EDEDED;
+  padding: 0 12px;
+}
+.admin-tab {
+  flex: 1;
+  text-align: center;
+  padding: 14px 0 12px;
+  font-size: 14px;
+  color: #6B7280;
+  position: relative;
+  transition: color 0.2s;
+}
+.admin-tab.active {
+  color: #1A6EFF;
+  font-weight: 600;
+}
+.admin-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: #1A6EFF;
+  border-radius: 2px 2px 0 0;
+}
+
+/* ===== 内容区 ===== */
+.admin-body {
+  flex: 1;
+  padding: 16px;
+}
+
+/* ===== 统计卡片 ===== */
+.stat-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.stat-card {
+  flex: 1;
+  min-width: calc(50% - 5px);
+  padding: 16px;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.stat-card.blue { background: linear-gradient(135deg, #1A6EFF, #22D3EE); }
+.stat-card.green { background: linear-gradient(135deg, #10B981, #34D399); }
+.stat-card.purple { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+.stat-card.orange { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
+.stat-card-num { display: block; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.stat-card-label { display: block; font-size: 13px; opacity: 0.9; }
+
+/* ===== 分布 ===== */
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 12px;
+}
+.dist-list {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+.dist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.dist-label {
+  width: 60px;
+  font-size: 13px;
+  color: #6B7280;
+  flex-shrink: 0;
+}
+.dist-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: #F3F4F6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.dist-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.dist-bar.blue { background: #1A6EFF; }
+.dist-bar.green { background: #10B981; }
+.dist-bar.gray { background: #9CA3AF; }
+.dist-num {
+  width: 30px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+/* ===== 分类网格 ===== */
+.cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.cat-chip {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #EDEDED;
+  min-width: calc(50% - 4px);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cat-chip-name { font-size: 14px; color: #1F2937; }
+.cat-chip-num { font-size: 13px; color: #1A6EFF; font-weight: 600; }
+
+/* ===== 搜索栏 ===== */
+.search-bar {
+  margin-bottom: 12px;
+}
+.search-input {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #EDEDED;
+  border-radius: 999px;
+  font-size: 14px;
+  background: white;
+  color: #1F2937;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== 列表项 ===== */
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.list-item-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22D3EE, #1A6EFF);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.list-item-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #9CA3AF;
+}
+.list-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.list-item-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-item-sub {
+  display: block;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 2px;
+}
+
+/* ===== 状态标签 ===== */
+.status-tag { font-weight: 500; }
+.status-tag.available { color: #10B981; }
+.status-tag.claimed { color: #6B7280; }
+.status-tag.inactive { color: #EF4444; }
+.status-tag.pending { color: #F59E0B; }
+.status-tag.approved { color: #10B981; }
+.status-tag.rejected { color: #EF4444; }
+
+/* ===== 删除按钮 ===== */
+.del-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: white;
+  background: #EF4444;
+  border-radius: 8px;
+  border: none;
+  line-height: 1.5;
+}
+.del-btn::after { border: none; }
+
+/* ===== 空状态 ===== */
+.empty-hint {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-size: 14px;
+}

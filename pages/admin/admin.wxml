@@ -1,0 +1,119 @@
+<view class="page">
+  <view class="page-inner">
+    <view class="nav-bar">
+      <view class="nav-back" bindtap="goBack">
+        <image class="nav-back-icon" src="/images/arrowleft0.png" mode="aspectFit" />
+      </view>
+      <text class="nav-title">管理后台</text>
+      <view class="nav-placeholder"></view>
+    </view>
+
+    <!-- Tab 栏 -->
+    <view class="admin-tabs">
+      <view class="admin-tab {{activeTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTab">
+        <text>仪表盘</text>
+      </view>
+      <view class="admin-tab {{activeTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTab">
+        <text>用户</text>
+      </view>
+      <view class="admin-tab {{activeTab === 2 ? 'active' : ''}}" data-tab="2" bindtap="switchTab">
+        <text>物品</text>
+      </view>
+      <view class="admin-tab {{activeTab === 3 ? 'active' : ''}}" data-tab="3" bindtap="switchTab">
+        <text>申请</text>
+      </view>
+    </view>
+
+    <!-- 仪表盘 -->
+    <scroll-view scroll-y class="admin-body" wx:if="{{activeTab === 0}}">
+      <view class="stat-grid">
+        <view class="stat-card blue">
+          <text class="stat-card-num">{{stats.userCount || 0}}</text>
+          <text class="stat-card-label">用户总数</text>
+        </view>
+        <view class="stat-card green">
+          <text class="stat-card-num">{{stats.itemCount || 0}}</text>
+          <text class="stat-card-label">物品总数</text>
+        </view>
+        <view class="stat-card purple">
+          <text class="stat-card-num">{{stats.requestCount || 0}}</text>
+          <text class="stat-card-label">申请总数</text>
+        </view>
+        <view class="stat-card orange">
+          <text class="stat-card-num">{{stats.msgCount || 0}}</text>
+          <text class="stat-card-label">消息总数</text>
+        </view>
+      </view>
+
+      <view class="section-title">物品状态分布</view>
+      <view class="dist-list">
+        <view class="dist-item">
+          <text class="dist-label">可领取</text>
+          <view class="dist-bar-wrap"><view class="dist-bar blue" style="width:{{stats.itemStatusCount ? (stats.itemStatusCount.available || 0) / (stats.itemCount || 1) * 100 : 0}}%"></view></view>
+          <text class="dist-num">{{stats.itemStatusCount ? stats.itemStatusCount.available || 0 : 0}}</text>
+        </view>
+        <view class="dist-item">
+          <text class="dist-label">已被领</text>
+          <view class="dist-bar-wrap"><view class="dist-bar green" style="width:{{stats.itemStatusCount ? (stats.itemStatusCount.claimed || 0) / (stats.itemCount || 1) * 100 : 0}}%"></view></view>
+          <text class="dist-num">{{stats.itemStatusCount ? stats.itemStatusCount.claimed || 0 : 0}}</text>
+        </view>
+        <view class="dist-item">
+          <text class="dist-label">已下架</text>
+          <view class="dist-bar-wrap"><view class="dist-bar gray" style="width:{{stats.itemStatusCount ? (stats.itemStatusCount.inactive || 0) / (stats.itemCount || 1) * 100 : 0}}%"></view></view>
+          <text class="dist-num">{{stats.itemStatusCount ? stats.itemStatusCount.inactive || 0 : 0}}</text>
+        </view>
+      </view>
+
+      <view class="section-title">分类分布</view>
+      <view class="cat-grid">
+        <view wx:for="{{catList}}" wx:key="*this" class="cat-chip">
+          <text class="cat-chip-name">{{item.name}}</text>
+          <text class="cat-chip-num">{{item.count}} 件</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 用户管理 -->
+    <scroll-view scroll-y class="admin-body" wx:if="{{activeTab === 1}}">
+      <view class="search-bar">
+        <input class="search-input" placeholder="搜索昵称…" bindinput="onSearchUser" value="{{searchUser}}" />
+      </view>
+      <view wx:if="{{users.length === 0}}" class="empty-hint">暂无数据</view>
+      <view wx:for="{{users}}" wx:key="userId" class="list-item">
+        <view class="list-item-avatar">{{item.name ? item.name.charAt(0) : '?'}}</view>
+        <view class="list-item-info">
+          <text class="list-item-title">{{item.name}}</text>
+          <text class="list-item-sub">{{item.community}} · 发布{{item.itemCount}}件 · 申请{{item.requestCount}}次</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 物品管理 -->
+    <scroll-view scroll-y class="admin-body" wx:if="{{activeTab === 2}}">
+      <view class="search-bar">
+        <input class="search-input" placeholder="搜索标题…" bindinput="onSearchItem" value="{{searchItem}}" />
+      </view>
+      <view wx:if="{{items.length === 0}}" class="empty-hint">暂无数据</view>
+      <view wx:for="{{items}}" wx:key="itemId" class="list-item">
+        <image wx:if="{{item.images && item.images.length > 0}}" class="list-item-img" src="{{item.images[item.coverIndex || 0]}}" mode="aspectFill" />
+        <view wx:else class="list-item-img placehold">{{item.category ? item.category.charAt(0) : '?'}}</view>
+        <view class="list-item-info">
+          <text class="list-item-title">{{item.title}}</text>
+          <text class="list-item-sub">{{item.ownerName}} · {{item.category}} · <text class="status-tag {{item.status}}">{{item.status === 'available' ? '可领取' : item.status === 'claimed' ? '已被领' : '已下架'}}</text></text>
+        </view>
+        <button class="del-btn" bindtap="deleteItem" data-itemid="{{item.itemId}}">删除</button>
+      </view>
+    </scroll-view>
+
+    <!-- 申请管理 -->
+    <scroll-view scroll-y class="admin-body" wx:if="{{activeTab === 3}}">
+      <view wx:if="{{requests.length === 0}}" class="empty-hint">暂无数据</view>
+      <view wx:for="{{requests}}" wx:key="requestId" class="list-item">
+        <view class="list-item-info" style="flex:1">
+          <text class="list-item-title">{{item.itemTitle}}</text>
+          <text class="list-item-sub">{{item.userName}} · <text class="status-tag {{item.status}}">{{item.status === 'pending' ? '待处理' : item.status === 'approved' ? '已通过' : '已拒绝'}}</text></text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
