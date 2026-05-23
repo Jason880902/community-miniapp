@@ -6,7 +6,7 @@ const db = cloud.database();
 const _ = db.command;
 
 // 管理员 OpenID 列表（韩大哥登录后替换）
-const ADMIN_OPENIDS = ['请替换为韩大哥的微信OpenID'];
+const ADMIN_OPENIDS = ['304003168442'];
 
 function requireAdmin() {
   const wxContext = cloud.getWXContext();
