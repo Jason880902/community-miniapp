@@ -6,7 +6,7 @@ const db = cloud.database();
 const _ = db.command;
 
 // 管理员 OpenID 列表（韩大哥登录后替换）
-const ADMIN_OPENIDS = ['304003168442'];
+const ADMIN_OPENIDS = ['o6zAJsxCA3gg2smy-0OOO5GyTsGU'];
 
 function requireAdmin() {
   const wxContext = cloud.getWXContext();
