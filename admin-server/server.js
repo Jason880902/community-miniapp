@@ -16,8 +16,8 @@ const cloudbase = require('@cloudbase/node-sdk');
 
 // ===== 配置 =====
 const ENV_ID = 'cloud1-d6ghwnr2odbc94c82';
-const SECRET_ID = '请替换为你的SecretId';
-const SECRET_KEY = '请替换为你的SecretKey';
+const SECRET_ID = process.env.TCB_SECRET_ID || '请替换为SecretId';
+const SECRET_KEY = process.env.TCB_SECRET_KEY || '请替换为SecretKey';
 const ADMIN_PASSWORD = 'admin888';   // 登录密码
 const PORT = 3000;                   // 监听端口
 
