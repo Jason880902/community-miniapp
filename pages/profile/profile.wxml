@@ -4,13 +4,15 @@
       <text class="nav-title">我的</text>
     </view>
 
-    <view class="profile-card">
-      <image wx:if="{{userAvatar}}" class="profile-avatar" src="{{userAvatar}}" mode="aspectFill" />
-      <view wx:else class="profile-avatar">{{userInitial}}</view>
-      <view class="profile-info">
-        <text class="profile-name">{{userName}}</text>
-        <text class="profile-community">{{userCommunity}}</text>
+    <!-- 个人资料头部（Flutter 风格蓝色渐变） -->
+    <view class="profile-header">
+      <view class="profile-avatar-wrap">
+        <image wx:if="{{userAvatar}}" class="profile-avatar-img" src="{{userAvatar}}" mode="aspectFill" />
+        <view wx:else class="profile-avatar-text">{{userInitial}}</view>
+        <view class="profile-avatar-edit" catchtap="editName">✏️</view>
       </view>
+      <text class="profile-name">{{userName}}</text>
+      <text class="profile-community">{{userCommunity}}</text>
     </view>
 
     <view class="stats-card">
@@ -30,16 +32,100 @@
 
     <view class="menu-list">
       <view class="menu-item" bindtap="goMyItems">
+        <view class="menu-icon-wrap menu-icon-blue">
+          <image class="menu-icon-img" src="/images/package.png" mode="aspectFit" />
+        </view>
         <text class="menu-text">我发布的物品</text>
-        <text class="menu-arrow">{{icons.arrow}}</text>
+        <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
+      </view>
+      <view class="menu-item" bindtap="goMyRequests">
+        <view class="menu-icon-wrap menu-icon-green">
+          <image class="menu-icon-img" src="/images/hearthandshake.png" mode="aspectFit" />
+        </view>
+        <text class="menu-text">我申请的物品</text>
+        <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
       </view>
       <view class="menu-item" bindtap="goMyMessages">
+        <view class="menu-icon-wrap menu-icon-purple">
+          <image class="menu-icon-img" src="/images/messagecircle0.png" mode="aspectFit" />
+        </view>
         <text class="menu-text">我的消息</text>
-        <text class="menu-arrow">{{icons.arrow}}</text>
+        <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
       </view>
-      <view class="menu-item" bindtap="logout">
+      <view class="menu-item danger" bindtap="logout">
+        <view class="menu-icon-wrap menu-icon-gray">
+          <image class="menu-icon-img" src="/images/logout.png" mode="aspectFit" />
+        </view>
         <text class="menu-text">切换用户</text>
-        <text class="menu-arrow">{{icons.arrow}}</text>
+        <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
+      </view>
+    </view>
+
+    <!-- 我的物品列表（可管理） -->
+    <view wx:if="{{showItems}}" class="items-section">
+      <view class="section-header">
+        <text class="items-section-title">我发布的物品</text>
+        <text class="section-count">{{myItems.length}} 件</text>
+      </view>
+      <view wx:if="{{myItems.length === 0}}" class="empty-wrap">
+        <text class="empty-emoji">📦</text>
+        <text class="empty-title">还没有发布过物品</text>
+        <text class="empty-sub">把家里的闲置好物分享给邻居吧</text>
+      </view>
+      <view class="my-item" wx:for="{{myItems}}" wx:key="id" bindtap="goItemDetail" data-id="{{item.id}}">
+        <image wx:if="{{item.images && item.images.length > 0}}" class="my-item-img" src="{{item.images[item.coverIndex || 0]}}" mode="aspectFill" />
+        <view wx:else class="my-item-img placehold" style="background:{{item.catColor.bg}};color:{{item.catColor.text}}">{{item.category.charAt(0)}}</view>
+        <view class="my-item-info">
+          <text class="my-item-title">{{item.title}}</text>
+          <view class="my-item-tags">
+            <text class="item-tag category">{{item.category}}</text>
+            <text wx:if="{{item._pendingCount > 0}}" class="status-badge requested">{{item._pendingCount}}人申请中</text>
+            <text wx:elif="{{item.status === 'available'}}" class="status-badge available">可领取</text>
+            <text wx:elif="{{item.status === 'inactive'}}" class="status-badge inactive">已下架</text>
+            <text wx:else class="status-badge claimed">已被领取</text>
+          </view>
+          <text class="my-item-time">{{item.time}}</text>
+        </view>
+        <view class="my-item-actions">
+          <button wx:if="{{item.status === 'available'}}" class="my-item-btn claim" catchtap="markItemClaimed" data-id="{{item.id}}">标记领取</button>
+          <button wx:if="{{item.status === 'available'}}" class="my-item-btn unlist" catchtap="unlistItem" data-id="{{item.id}}">下架</button>
+          <button wx:elif="{{item.status === 'inactive'}}" class="my-item-btn edit" catchtap="editItem" data-id="{{item.id}}">编辑</button>
+          <button wx:elif="{{item.status === 'inactive'}}" class="my-item-btn republish" catchtap="republishItem" data-id="{{item.id}}">重新发布</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 我申请的物品列表 -->
+    <view wx:if="{{showRequests}}" class="items-section">
+      <view class="section-header">
+        <text class="items-section-title">我申请的物品</text>
+        <text class="section-count">{{myRequests.length}} 件</text>
+      </view>
+      <view wx:if="{{myRequests.length === 0}}" class="empty-wrap">
+        <text class="empty-emoji">📋</text>
+        <text class="empty-title">还没有申请过物品</text>
+        <text class="empty-sub">去首页看看邻居分享了什么好东西吧</text>
+      </view>
+      <view class="my-item" wx:for="{{myRequests}}" wx:key="id">
+        <image wx:if="{{item.itemImage}}" class="my-item-img" src="{{item.itemImage}}" mode="aspectFill" />
+        <view wx:else class="my-item-img placehold" style="background:#F3F4F6;color:#9CA3AF">?</view>
+        <view class="my-item-info">
+          <text class="my-item-title">{{item.itemTitle || '物品已删除'}}</text>
+          <view class="my-item-tags">
+            <text wx:if="{{item.itemCategory}}" class="item-tag category">{{item.itemCategory}}</text>
+            <text wx:if="{{item.status === 'pending'}}" class="status-badge requested">待处理</text>
+            <text wx:elif="{{item.status === 'approved'}}" class="status-badge available">已通过</text>
+            <text wx:else class="status-badge inactive">已拒绝</text>
+          </view>
+          <text class="my-item-time">{{item.time}}</text>
+        </view>
+        <view class="my-item-actions">
+          <button class="my-item-btn disabled" disabled>
+            <text wx:if="{{item.status === 'pending'}}">等待回复</text>
+            <text wx:elif="{{item.status === 'approved'}}">已通过 ✓</text>
+            <text wx:else>已拒绝 ✕</text>
+          </button>
+        </view>
       </view>
     </view>
   </view>
@@ -48,23 +134,23 @@
   <view class="tab-bar">
     <view class="tab-inner">
       <view class="tab-item" bindtap="goHome">
-        <text class="tab-icon">{{icons.TAB_ICONS.home}}</text>
+        <image class="tab-icon" src="/images/home0.png" mode="aspectFit" />
         <text class="tab-label">首页</text>
       </view>
       <view class="tab-item" bindtap="goCommunity">
-        <text class="tab-icon">{{icons.TAB_ICONS.community}}</text>
+        <image class="tab-icon" src="/images/building20.png" mode="aspectFit" />
         <text class="tab-label">小区</text>
       </view>
       <view class="tab-item tab-post" bindtap="goPost">
-        <text class="tab-icon">{{icons.TAB_ICONS.post}}</text>
+        <image class="tab-icon" src="/images/pluscircle1.png" mode="aspectFit" />
         <text class="tab-label">发布</text>
       </view>
       <view class="tab-item" bindtap="goMyMessages">
-        <text class="tab-icon">{{icons.TAB_ICONS.msg}}</text>
+        <image class="tab-icon" src="/images/messagecircle1.png" mode="aspectFit" />
         <text class="tab-label">消息</text>
       </view>
       <view class="tab-item active">
-        <text class="tab-icon">{{icons.TAB_ICONS.me}}</text>
+        <image class="tab-icon" src="/images/user0.png" mode="aspectFit" />
         <text class="tab-label">我的</text>
       </view>
     </view>

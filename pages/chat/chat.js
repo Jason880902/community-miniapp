@@ -17,12 +17,9 @@ Page({
     recording: false,
     recordDuration: 0,
     playingId: '',
-    showCallUI: false,
-    callType: '',
-    callStatus: '',
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const user = app.globalData.userInfo;
     if (!user) return;
 
@@ -30,17 +27,30 @@ Page({
     const itemId = options.itemId || '';
     if (!partnerId) { wx.navigateBack(); return; }
 
-    const partner = DB.getUserById(partnerId);
+    let partnerName = '';
+    let isSystem = false;
+    if (partnerId === 'system') {
+      partnerName = '系统通知';
+      isSystem = true;
+    } else {
+      const partner = await DB.getUserById(partnerId);
+      partnerName = partner ? partner.name : '邻居';
+    }
+    const partnerInitial = partnerName.charAt(0);
     this.setData({
       partnerId,
-      partnerName: partner ? partner.name : '邻居',
-      itemId
+      partnerName,
+      partnerInitial,
+      itemId,
+      isSystem
     });
 
-    DB.markRead(user.id, partnerId);
-    this.loadMessages();
-    this.initRecorder();
-    this.initAudio();
+    await DB.markRead(user.id, partnerId);
+    await this.loadMessages();
+    if (!isSystem) {
+      this.initRecorder();
+      this.initAudio();
+    }
   },
 
   onUnload() {
@@ -62,7 +72,7 @@ Page({
       }, 1000);
     });
 
-    this._recorder.onStop((res) => {
+    this._recorder.onStop(async (res) => {
       clearInterval(this._recTimer);
       self.setData({ recording: false });
 
@@ -71,15 +81,15 @@ Page({
         return;
       }
 
-      const user = DB.getCurrentUser();
+      const user = app.globalData.userInfo;
       if (!user) return;
 
-      DB.sendMessage(user.id, self.data.partnerId, self.data.itemId || 'general',
+      await DB.sendMessage(user.id, self.data.partnerId, self.data.itemId || 'general',
         '[语音]', 'voice', {
           voiceDuration: Math.round(res.duration / 1000),
           voiceUrl: res.tempFilePath
         });
-      self.loadMessages();
+      await self.loadMessages();
     });
 
     this._recorder.onError(() => {
@@ -104,10 +114,10 @@ Page({
   },
 
   // ===== 消息加载 =====
-  loadMessages() {
-    const user = DB.getCurrentUser();
+  async loadMessages() {
+    const user = app.globalData.userInfo;
     if (!user || !this.data.partnerId) return;
-    const msgs = DB.getMessages(user.id, this.data.partnerId);
+    const msgs = await DB.getMessages(user.id, this.data.partnerId);
     this.setData({
       messages: msgs.map((m, i) => ({
         ...m,
@@ -167,23 +177,31 @@ Page({
   },
 
   // ===== 拍照/选图 =====
-  sendImage() {
+  sendImage(sourceType) {
     const self = this;
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
-      sourceType: ['camera', 'album'],
-      success(res) {
+      sourceType: sourceType,
+      success: async (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        const user = DB.getCurrentUser();
+        const user = app.globalData.userInfo;
         if (!user) return;
 
-        DB.sendMessage(user.id, self.data.partnerId, self.data.itemId || 'general',
+        await DB.sendMessage(user.id, self.data.partnerId, self.data.itemId || 'general',
           '[图片]', 'image', { imageUrl: tempFilePath });
         self.setData({ showActions: false });
-        self.loadMessages();
+        await self.loadMessages();
       }
     });
+  },
+
+  takePhoto() {
+    this.sendImage(['camera']);
+  },
+
+  pickFromAlbum() {
+    this.sendImage(['album']);
   },
 
   previewImage(e) {
@@ -191,74 +209,25 @@ Page({
     if (url) wx.previewImage({ urls: [url] });
   },
 
-  // ===== 通话 =====
-  startVoiceCall() {
-    this._doCall('voice');
+  // ===== 通话（发送通话邀请消息） =====
+  async startVoiceCall() {
+    const user = app.globalData.userInfo;
+    if (!user) return;
+    await DB.sendMessage(user.id, this.data.partnerId, this.data.itemId || 'general',
+      '语音通话', 'call', { callType: 'voice' });
+    this.setData({ showActions: false });
+    await this.loadMessages();
+    wx.showToast({ title: '已发送语音通话邀请', icon: 'none' });
   },
 
-  startVideoCall() {
-    this._doCall('video');
-  },
-
-  _doCall(type) {
-    const self = this;
-    wx.showModal({
-      title: type === 'voice' ? '语音通话' : '视频通话',
-      content: '呼叫 ' + this.data.partnerName + '...',
-      confirmText: '呼叫',
-      cancelText: '取消',
-      success(res) {
-        if (!res.confirm) return;
-        const user = DB.getCurrentUser();
-        if (!user) return;
-
-        const label = type === 'voice' ? '语音通话' : '视频通话';
-        DB.sendMessage(user.id, self.data.partnerId, self.data.itemId || 'general',
-          label, 'call', { callType: type });
-
-        self.setData({
-          showCallUI: true,
-          callType: type,
-          callStatus: 'calling',
-          showActions: false
-        });
-        self.loadMessages();
-
-        // 模拟：3 秒后自动接通（演示效果）
-        self._callTimer = setTimeout(() => {
-          if (self.data.callStatus === 'calling') {
-            self.setData({ callStatus: 'connected' });
-            // 再 4 秒后挂断
-            self._callEndTimer = setTimeout(() => {
-              self._endCall();
-            }, 4000);
-          }
-        }, 3000);
-      }
-    });
-  },
-
-  acceptCall() {
-    clearTimeout(this._callTimer);
-    this.setData({ callStatus: 'connected' });
-    const self = this;
-    self._callEndTimer = setTimeout(() => {
-      self._endCall();
-    }, 4000);
-  },
-
-  declineCall() {
-    clearTimeout(this._callTimer);
-    clearTimeout(this._callEndTimer);
-    this._endCall();
-  },
-
-  _endCall() {
-    this.setData({ callStatus: 'ended' });
-    const self = this;
-    setTimeout(() => {
-      self.setData({ showCallUI: false, callStatus: '' });
-    }, 1500);
+  async startVideoCall() {
+    const user = app.globalData.userInfo;
+    if (!user) return;
+    await DB.sendMessage(user.id, this.data.partnerId, this.data.itemId || 'general',
+      '视频通话', 'call', { callType: 'video' });
+    this.setData({ showActions: false });
+    await this.loadMessages();
+    wx.showToast({ title: '已发送视频通话邀请', icon: 'none' });
   },
 
   // ===== 文本消息 =====
@@ -266,15 +235,15 @@ Page({
     this.setData({ inputValue: e.detail.value });
   },
 
-  sendMessage() {
+  async sendMessage() {
     const content = this.data.inputValue.trim();
     if (!content) return;
-    const user = DB.getCurrentUser();
+    const user = app.globalData.userInfo;
     if (!user) return;
 
-    DB.sendMessage(user.id, this.data.partnerId, this.data.itemId || 'general', content, 'text');
+    await DB.sendMessage(user.id, this.data.partnerId, this.data.itemId || 'general', content, 'text');
     this.setData({ inputValue: '' });
-    this.loadMessages();
+    await this.loadMessages();
   },
 
   goBack() {

@@ -1,6 +1,7 @@
 const DB = require('../../utils/data');
 const util = require('../../utils/util');
 const icons = require('../../utils/icons');
+const app = getApp();
 
 Page({
   data: {
@@ -9,15 +10,15 @@ Page({
     unreadCount: 0
   },
 
-  onShow() {
-    this.loadConversations();
-    this.updateUnread();
+  async onShow() {
+    await this.loadConversations();
+    await this.updateUnread();
   },
 
-  loadConversations() {
-    const user = DB.getCurrentUser();
+  async loadConversations() {
+    const user = app.globalData.userInfo;
     if (!user) return;
-    const convs = DB.getConversations(user.id);
+    const convs = await DB.getConversations(user.id);
     this.setData({
       conversations: convs.map(c => ({
         ...c,
@@ -26,10 +27,11 @@ Page({
     });
   },
 
-  updateUnread() {
-    const user = DB.getCurrentUser();
+  async updateUnread() {
+    const user = app.globalData.userInfo;
     if (user) {
-      this.setData({ unreadCount: DB.countUnread(user.id) });
+      const count = await DB.countUnread(user.id);
+      this.setData({ unreadCount: count });
     }
   },
 

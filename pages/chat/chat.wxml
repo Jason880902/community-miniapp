@@ -2,8 +2,7 @@
   <view class="page-inner">
   <view class="nav-bar">
     <view class="nav-back" bindtap="goBack">
-      <text class="nav-back-icon">{{icons.back}}</text>
-      <text class="nav-back-text">返回</text>
+      <image class="nav-back-icon" src="/images/arrowleft0.png" mode="aspectFit" />
     </view>
     <text class="nav-title">{{partnerName}}</text>
     <view class="nav-placeholder"></view>
@@ -15,46 +14,51 @@
     </view>
     <block wx:for="{{messages}}" wx:key="id" id="msg-{{index}}">
       <!-- 文本消息 -->
-      <view wx:if="{{item.type === 'text' || !item.type}}" class="msg {{item.isSent ? 'sent' : 'received'}}">
-        <text class="msg-text">{{item.content}}</text>
-        <text class="msg-time">{{item.time}}</text>
-      </view>
-
-      <!-- 语音消息 -->
-      <view wx:elif="{{item.type === 'voice'}}" class="msg voice {{item.isSent ? 'sent' : 'received'}} {{playingId === item.id ? 'playing' : ''}}" bindtap="playVoice" data-id="{{item.id}}">
-        <view class="voice-inner">
-          <text class="voice-icon">{{playingId === item.id ? '⏹' : '▶'}}</text>
-          <view class="voice-bar">
-            <view class="voice-bar-fill" style="width:{{Math.min(item.voiceDuration * 8, 100)}}%"></view>
-          </view>
-          <text class="voice-dur">{{item.voiceDuration}}"</text>
+      <view wx:if="{{item.type === 'text' || !item.type}}" class="msg-row {{item.isSent ? 'sent' : 'received'}}">
+        <view wx:if="{{!item.isSent}}" class="msg-avatar">{{partnerInitial}}</view>
+        <view class="msg {{item.isSent ? 'sent' : 'received'}}">
+          <text class="msg-text">{{item.content}}</text>
+          <text class="msg-time">{{item.time}}</text>
         </view>
-        <text class="msg-time">{{item.time}}</text>
       </view>
 
       <!-- 图片消息 -->
-      <view wx:elif="{{item.type === 'image'}}" class="msg image {{item.isSent ? 'sent' : 'received'}}">
-        <image class="msg-image" src="{{item.imageUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.imageUrl}}" />
-        <text class="msg-time">{{item.time}}</text>
+      <view wx:elif="{{item.type === 'image'}}" class="msg-row {{item.isSent ? 'sent' : 'received'}}">
+        <view wx:if="{{!item.isSent}}" class="msg-avatar">{{partnerInitial}}</view>
+        <view class="msg image {{item.isSent ? 'sent' : 'received'}}">
+          <image class="msg-image" src="{{item.imageUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.imageUrl}}" />
+          <text class="msg-time">{{item.time}}</text>
+        </view>
       </view>
 
-      <!-- 通话记录 -->
-      <view wx:elif="{{item.type === 'call'}}" class="msg call-center">
-        <text class="call-log">{{item.callType === 'video' ? '📹' : '📞'}} {{item.content}}</text>
+      <!-- 申请卡片（仅物主可见，居中展示） -->
+      <view wx:elif="{{item.type === 'request' && isOwner}}" class="msg request-card-wrap">
+        <view class="request-card">
+          <text class="request-card-title">领取申请</text>
+          <text class="request-card-body">{{item.userName}} 想要领取这件物品</text>
+          <view class="request-card-actions" wx:if="{{item.status === 'pending'}}">
+            <button class="rcard-btn approve" bindtap="approveRequest" data-reqid="{{item.reqId}}">批准</button>
+            <button class="rcard-btn reject" bindtap="rejectRequest" data-reqid="{{item.reqId}}">拒绝</button>
+          </view>
+          <text wx:else class="request-card-done">{{item.status === 'approved' ? '✅ 已批准' : '❌ 已拒绝'}}</text>
+        </view>
       </view>
+
     </block>
   </scroll-view>
 
-  <!-- 输入区 -->
-  <view class="input-area">
-    <!-- 模式切换 -->
+  <view wx:if="{{isSystem}}" class="system-hint">
+    <text>系统消息，无需回复</text>
+  </view>
+  <view wx:else class="input-area">
+    <!-- 话筒（切换语音模式） -->
     <view class="input-toggle" bindtap="toggleInputMode">
-      <text wx:if="{{inputMode === 'text'}}" class="toggle-icon">🎤</text>
-      <text wx:else class="toggle-icon">⌨</text>
+      <image wx:if="{{inputMode === 'text'}}" class="toggle-mic-icon" src="/images/Vector_2_286.png" mode="aspectFit" />
+      <text wx:else class="toggle-kb-icon">⌨</text>
     </view>
 
     <!-- 文字输入 -->
-    <input wx:if="{{inputMode === 'text'}}" class="input-box" placeholder="输入消息…" bindinput="onInput" value="{{inputValue}}" confirm-type="send" bindconfirm="sendMessage" />
+    <input wx:if="{{inputMode === 'text'}}" class="input-box" placeholder="发消息…" bindinput="onInput" value="{{inputValue}}" confirm-type="send" bindconfirm="sendMessage" />
 
     <!-- 录音按钮 -->
     <view wx:else class="record-btn" bindtouchstart="startRecord" bindtouchend="stopRecord" bindtouchcancel="stopRecord">
@@ -66,46 +70,42 @@
 
     <!-- 加号 -->
     <view class="input-plus" bindtap="toggleActions">
-      <text class="plus-icon">+</text>
+      <image class="plus-icon" src="/images/pluscircle.png" mode="aspectFit" />
     </view>
 
     <!-- 发送 -->
-    <button wx:if="{{inputMode === 'text' && inputValue.length > 0}}" class="send-btn" bindtap="sendMessage">发送</button>
+    <button class="send-btn" bindtap="sendMessage">发送</button>
   </view>
 
   <!-- 操作面板 -->
   <view wx:if="{{showActions}}" class="action-mask" bindtap="toggleActions"></view>
   <view wx:if="{{showActions}}" class="action-sheet">
-    <view class="action-item" bindtap="sendImage">
-      <view class="action-icon-box camera">📷</view>
-      <text class="action-label">拍照</text>
+    <view class="action-item" bindtap="takePhoto">
+      <view class="action-icon-box take-photo">
+        <image class="action-icon-img" src="/images/camera.png" mode="aspectFit" />
+      </view>
+      <text class="action-label">拍摄</text>
+    </view>
+    <view class="action-item" bindtap="pickFromAlbum">
+      <view class="action-icon-box photo-album">
+        <view class="album-icon-wrap">
+          <image class="album-circle" src="/images/Ellipse_4_197.png" mode="aspectFit" />
+          <image class="album-mountain" src="/images/Vector_4_198.png" mode="aspectFit" />
+        </view>
+      </view>
+      <text class="action-label">照片</text>
     </view>
     <view class="action-item" bindtap="startVoiceCall">
-      <view class="action-icon-box call">📞</view>
+      <view class="action-icon-box voice-call">
+        <image class="action-icon-img" src="/images/phone.png" mode="aspectFit" />
+      </view>
       <text class="action-label">语音通话</text>
     </view>
     <view class="action-item" bindtap="startVideoCall">
-      <view class="action-icon-box video">📹</view>
-      <text class="action-label">视频通话</text>
-    </view>
-  </view>
-
-  <!-- 通话界面 -->
-  <view wx:if="{{showCallUI}}" class="call-overlay">
-    <view class="call-card">
-      <view class="call-avatar">{{partnerName.charAt(0)}}</view>
-      <text class="call-name">{{partnerName}}</text>
-      <text class="call-type-label">{{callType === 'voice' ? '语音通话' : '视频通话'}}</text>
-      <text class="call-status-text">
-        <text wx:if="{{callStatus === 'calling'}}">呼叫中...</text>
-        <text wx:elif="{{callStatus === 'connected'}}">通话中</text>
-        <text wx:else>已结束</text>
-      </text>
-      <view class="call-btn-row">
-        <view wx:if="{{callStatus === 'calling'}}" class="call-btn decline" bindtap="declineCall">挂断</view>
-        <view wx:if="{{callStatus === 'calling'}}" class="call-btn accept" bindtap="acceptCall">接听</view>
-        <view wx:if="{{callStatus === 'connected'}}" class="call-btn hangup" bindtap="declineCall">挂断</view>
+      <view class="action-icon-box video-call">
+        <image class="action-icon-img" src="/images/Vector_4_217.png" mode="aspectFit" />
       </view>
+      <text class="action-label">视频通话</text>
     </view>
   </view>
   </view>

@@ -1,7 +1,11 @@
 {
   "description": "邻里 - 社区旧物爱心分享小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "cloudfunctions" },
+      { "type": "folder", "value": "测试材料" },
+      { "type": "folder", "value": "node_modules" }
+    ],
     "include": []
   },
   "setting": {
@@ -50,7 +54,7 @@
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "compileType": "miniprogram",
   "libVersion": "3.15.2",
-  "appid": "wxe0eb9dddbd7cec5a",
+  "appid": "wxe676c00593b9bae4",
   "projectname": "邻里",
   "condition": {},
   "editorSetting": {

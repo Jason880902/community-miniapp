@@ -11,22 +11,23 @@ Page({
     itemCount: 0
   },
 
-  onShow() {
+  async onShow() {
     if (!app.globalData.isLogin) {
       wx.redirectTo({ url: '/pages/login/login' });
       return;
     }
-    this.loadCommunity();
+    await this.loadCommunity();
   },
 
-  loadCommunity() {
+  async loadCommunity() {
     const user = app.globalData.userInfo;
     if (!user) return;
     const name = user.community;
-    const allUsers = DB.getAllUsers();
+    const allUsers = await DB.getAllUsers();
     const members = allUsers.filter(u => u.community === name);
-    const items = DB.getAllItems().filter(i => i.status === 'available');
-    const communityItems = items.filter(i => members.some(m => m.id === i.userId));
+    const items = await DB.getAllItems();
+    const availableItems = items.filter(i => i.status === 'available');
+    const communityItems = availableItems.filter(i => members.some(m => m.id === i.userId));
 
     this.setData({
       communityName: name,

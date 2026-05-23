@@ -1,132 +1,223 @@
 .page {
   min-height: 100vh;
-  background: #EDF4FF;
+  background: #F5F6FA;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
 }
 .page-inner {
   width: 100%;
   max-width: 430px;
   flex: 1;
   padding-bottom: 70px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .nav-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
+  padding: 0 16px;
+  height: 48px;
+  box-sizing: border-box;
   background: white;
+  border-bottom: 1px solid #EDEDED;
 }
-.nav-title { font-size: 17px; font-weight: 600; }
+.nav-title { font-size: 17px; font-weight: 600; color: #1F2937; }
 
-.profile-card {
-  background: white;
-  padding: 24px 20px;
+/* ===== 用户信息头部（Flutter 蓝色渐变风格） ===== */
+.profile-header {
+  background: linear-gradient(135deg, #1A6EFF 0%, #4F46E5 100%);
+  padding: 40px 20px 32px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid var(--border, #E5E7EB);
+  gap: 10px;
 }
-.profile-avatar {
-  width: 60px;
-  height: 60px;
+.profile-avatar-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+.profile-avatar-img {
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: var(--primary, #1A6EFF);
+  border: 3px solid rgba(255,255,255,0.9);
+  object-fit: cover;
+}
+.profile-avatar-text {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.13);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
 }
-.profile-info { flex: 1; }
-.profile-name { font-size: 20px; font-weight: 700; display: block; color: #1F2937; }
-.profile-community { font-size: 14px; color: var(--text-secondary, #6B7280); display: block; margin-top: 2px; }
+.profile-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.profile-header .profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+.profile-header .profile-community {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+}
 
+/* ===== 用户信息卡片（旧版，保留兼容） ===== */
+.profile-card {
+  background: white;
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1A6EFF, #4F46E5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(26,110,255,0.25);
+}
+.profile-info { flex: 1; }
+.profile-name { font-size: 22px; font-weight: 700; display: block; color: #1F2937; }
+.profile-community { font-size: 14px; color: #6B7280; display: block; margin-top: 3px; }
+
+/* ===== 统计卡片 ===== */
 .stats-card {
   display: flex;
   background: white;
-  padding: 16px 0;
-  margin-bottom: 12px;
+  height: 72px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
-.stat-item { flex: 1; text-align: center; border-right: 1px solid var(--border, #E5E7EB); }
+.stat-item { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-right: 1px solid #EDEDED; }
 .stat-item:last-child { border-right: none; }
-.stat-num { font-size: 22px; font-weight: 700; color: var(--primary, #1A6EFF); display: block; }
-.stat-label { font-size: 12px; color: var(--text-secondary, #6B7280); display: block; margin-top: 2px; }
+.stat-num { font-size: 22px; font-weight: 700; color: #1A6EFF; display: block; line-height: 1; }
+.stat-num.green { color: var(--success, #10B981); }
+.stat-num.amber { color: var(--warning, #F59E0B); }
+.stat-label { font-size: 12px; color: #6B7280; display: block; }
 
-.menu-list { background: white; }
+/* ===== 菜单列表 ===== */
+.menu-list {
+  background: white;
+  border-radius: var(--radius-card, 16px);
+  margin: 0 0 12px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.04));
+  overflow: hidden;
+}
 .menu-item {
   display: flex;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border, #E5E7EB);
+  border-bottom: 1px solid #F9FAFB;
+  gap: 12px;
+  transition: background 0.15s;
 }
 .menu-item:last-child { border-bottom: none; }
-.menu-text { flex: 1; font-size: 15px; color: #1F2937; }
-.menu-arrow { font-size: 20px; color: var(--text-light, #9CA3AF); }
+.menu-item:active { background: #F9FAFB; }
+.menu-item.danger .menu-text { color: #6B7280; }
+.menu-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.menu-icon-blue { background: #EFF6FF; }
+.menu-icon-green { background: #ECFDF5; }
+.menu-icon-amber { background: #FFF7ED; }
+.menu-icon-red { background: #FEF2F2; }
+.menu-icon-gray { background: #F3F4F6; }
+.menu-text { flex: 1; font-size: 15px; color: #1F2937; font-weight: 500; }
+.menu-arrow { width: 18px; height: 18px; flex-shrink: 0; }
+/* ===== section 标题行 ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 0 14px;
+}
+.section-count { font-size: 13px; color: #9CA3AF; }
 
-/* ===== 底部标签栏 ===== */
-.tab-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
+/* ===== 物品列表（继承） ===== */
+.items-section {
   background: white;
-  border-top: 1px solid #EDEDED;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: var(--radius-card, 16px);
+  margin: 0 0 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.04));
 }
-.tab-inner {
-  width: 100%;
-  max-width: 430px;
-  height: 60px;
+.items-section-title { font-size: 15px; font-weight: 700; color: #1F2937; }
+.my-item {
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 2px;
-  padding: 0 8px;
-  box-sizing: border-box;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid #F3F4F6;
 }
-.tab-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #9CA3AF;
-  position: relative;
-  height: 50px;
-  border-radius: 12px;
-  gap: 1px;
-  transition: all 0.2s;
+.my-item:first-of-type { border-top: none; }
+.my-item-img {
+  width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.06));
+  object-fit: cover;
 }
-.tab-item.active {
-  color: white;
-  background: #1A6EFF;
+.my-item-info { flex: 1; min-width: 0; }
+.my-item-title { font-size: 14px; font-weight: 600; color: #1F2937; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-item-tags { display: flex; gap: 4px; margin: 5px 0; flex-wrap: wrap; }
+.my-item-time { font-size: 11px; color: #9CA3AF; display: block; }
+.my-item-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.my-item-btn {
+  height: 28px; line-height: 28px; padding: 0 10px;
+  border-radius: var(--radius-tag, 6px); font-size: 11px; font-weight: 500;
+  transition: all 0.2s; border: none;
+  display: flex; align-items: center; justify-content: center;
 }
-.tab-post {
-  background: #1A6EFF;
-  color: white;
-}
-.tab-item.active .tab-icon,
-.tab-post .tab-icon { color: white; }
-.tab-icon { font-size: 16px; line-height: 1.2; }
-.tab-label { font-size: 10px; font-weight: 500; line-height: 1.2; }
-.tab-badge {
-  position: absolute;
-  top: 0;
-  right: 50%;
-  margin-right: -20px;
-  background: #EF4444;
-  color: white;
-  font-size: 8px;
-  padding: 1px 4px;
-  border-radius: 8px;
-  min-width: 14px;
-  text-align: center;
-  line-height: 1.2;
-}
+.my-item-btn.claim { background: #1A6EFF; color: white; box-shadow: 0 2px 6px rgba(26,110,255,0.2); }
+.my-item-btn.claim:active { opacity: 0.85; }
+.my-item-btn.unlist { background: #F3F4F6; color: #6B7280; }
+.my-item-btn.unlist:active { background: #E5E7EB; }
+.my-item-btn.edit { background: #EFF6FF; color: #1A6EFF; }
+.my-item-btn.edit:active { background: #DBEAFE; }
+.my-item-btn.republish { background: #F0FDF4; color: #16A34A; }
+.my-item-btn.republish:active { background: #DCFCE7; }
+.my-item-btn.mark { background: #EFF6FF; color: #1A6EFF; }
+.my-item-btn.disabled { background: #F3F4F6; color: #9CA3AF; }
+.my-item-btn::after { border: none; }
+
+.menu-icon-img { width: 18px; height: 18px; display: block; }
+.menu-icon-purple { background: #FAF5FF; }
+
+/* Tab Bar 见 app.wxss（Flutter pill 设计） */

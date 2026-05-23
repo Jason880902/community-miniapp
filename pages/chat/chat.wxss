@@ -1,9 +1,10 @@
 .page {
   min-height: 100vh;
-  background: #F3F4F6;
+  background: #F7F8FA;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
 }
 .page-inner {
   width: 100%;
@@ -11,22 +12,16 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ===== 导航栏 ===== */
 .nav-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
-.nav-back { display: flex; align-items: center; gap: 4px; }
-.nav-back-icon { font-size: 22px; }
-.nav-back-text { font-size: 15px; }
 .nav-title { font-size: 17px; font-weight: 600; }
 .nav-placeholder { width: 60px; }
 
@@ -36,31 +31,50 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* ===== 文本消息 ===== */
+/* ===== 文本消息（对齐 Flutter 气泡） ===== */
+.msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+.msg-row.sent {
+  justify-content: flex-end;
+}
+.msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22D3EE, #1A6EFF);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(34,211,238,0.25);
+}
 .msg {
   max-width: 80%;
   padding: 10px 14px;
-  border-radius: 16px;
-  position: relative;
 }
 .msg.sent {
-  align-self: flex-end;
   background: #1A6EFF;
   color: white;
-  border-bottom-right-radius: 4px;
-  margin-left: auto;
+  border-radius: 14px 0 14px 14px;
+  box-shadow: 0 2px 6px rgba(26,110,255,0.2);
 }
 .msg.received {
-  align-self: flex-start;
   background: white;
   color: #1F2937;
-  border-bottom-left-radius: 4px;
-  margin-right: auto;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: 0 14px 14px 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
 }
+
 .msg-text { font-size: 14px; line-height: 1.5; display: block; }
 .msg-time { font-size: 11px; color: #9CA3AF; display: block; margin-top: 4px; text-align: right; }
 .msg.sent .msg-time { color: rgba(255,255,255,0.7); }
@@ -70,56 +84,6 @@
   padding: 40px;
   color: #9CA3AF;
   font-size: 14px;
-}
-
-/* ===== 语音消息 ===== */
-.msg.voice {
-  padding: 12px 14px;
-  min-width: 120px;
-}
-.voice-inner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.voice-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.msg.received .voice-icon { color: #1A6EFF; }
-.msg.sent .voice-icon { color: white; }
-.voice-bar {
-  flex: 1;
-  height: 4px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.msg.sent .voice-bar { background: rgba(255,255,255,0.3); }
-.voice-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0.6;
-}
-.msg.received .voice-bar-fill { background: #1A6EFF; }
-.msg.sent .voice-bar-fill { background: white; }
-.voice-dur {
-  font-size: 13px;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-.msg.received .voice-dur { color: #1F2937; }
-.msg.sent .voice-dur { color: white; }
-
-/* 播放状态 */
-.msg.voice.playing .voice-icon { color: #22D3EE; }
-.msg.voice.playing .voice-bar-fill {
-  animation: voicePlay 0.8s ease infinite alternate;
-}
-@keyframes voicePlay {
-  from { opacity: 0.3; }
-  to { opacity: 1; }
 }
 
 /* ===== 图片消息 ===== */
@@ -140,57 +104,83 @@
   margin-top: 2px;
 }
 
-/* ===== 通话记录（居中系统消息） ===== */
-.msg.call-center {
-  align-self: center;
-  background: transparent;
-  padding: 4px 12px;
-  box-shadow: none;
-  max-width: none;
-}
-.call-log {
-  font-size: 12px;
-  color: #9CA3AF;
-  background: rgba(0,0,0,0.05);
-  padding: 4px 12px;
-  border-radius: 8px;
-}
-
-/* ===== 输入区 ===== */
+/* ===== 输入区（对齐 Flutter） ===== */
 .input-area {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 10px 12px 30px;
   background: white;
   border-top: 1px solid #EDEDED;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
-/* 模式切换 */
+/* 附件按钮（话筒-切换语音） */
 .input-toggle {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: #F3F4F6;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.toggle-icon { font-size: 18px; }
+/* 话筒图标 — 单个 image 标签渲染 */
+.toggle-mic-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.toggle-kb-icon {
+  font-size: 20px;
+  line-height: 1;
+}
 
-/* 文字输入框 */
+/* 加号按钮 */
+.input-plus {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.plus-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* 文字输入框 — 圆角药丸 */
 .input-box {
   flex: 1;
   height: 38px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  background: #F3F4F6;
+  padding: 0 14px;
+  border: 1px solid #EDEDED;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 14px;
+  background: #F7F8FA;
   color: #1F2937;
+  transition: border-color 0.2s, background 0.2s;
 }
+.input-box:focus {
+  border-color: #1A6EFF;
+  background: white;
+}
+
+/* 发送按钮 */
+.send-btn {
+  min-width: 56px;
+  height: 36px;
+  padding: 0 14px;
+  background: #1A6EFF;
+  color: white;
+  border-radius: var(--radius-btn, 10px);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 36px;
+  border: none;
+  flex-shrink: 0;
+}
+.send-btn::after { border: none; }
 
 /* 录音按钮 */
 .record-btn {
@@ -199,58 +189,27 @@
 }
 .record-inner {
   height: 100%;
-  border-radius: 8px;
-  background: #F3F4F6;
+  border-radius: var(--radius-pill, 999px);
+  background: #F7F8FA;
+  border: 1px solid #EDEDED;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .record-inner.recording {
   background: #EFF6FF;
-  border: 1px solid #1A6EFF;
+  border-color: #1A6EFF;
 }
 .record-hint {
   font-size: 14px;
-  color: #6B7280;
-}
-.recording .record-hint {
-  color: #1A6EFF;
+  color: #9CA3AF;
   font-weight: 500;
 }
-
-/* 加号按钮 */
-.input-plus {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: #F3F4F6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.plus-icon {
-  font-size: 22px;
-  color: #6B7280;
-  line-height: 1;
+.record-inner.recording .record-hint {
+  color: #1A6EFF;
 }
 
-/* 发送按钮 */
-.send-btn {
-  height: 38px;
-  padding: 0 18px;
-  background: #1A6EFF;
-  color: white;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 38px;
-  border: none;
-  flex-shrink: 0;
-}
-.send-btn::after { border: none; }
-
-/* ===== 操作面板 ===== */
+/* ===== 操作面板（对齐 Flutter 4 项设计） ===== */
 .action-mask {
   position: fixed;
   top: 0;
@@ -265,12 +224,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: white;
-  border-radius: 16px 16px 0 0;
+  background: #F4F4F4;
+  border-radius: 0;
   z-index: 100;
-  padding: 24px 16px calc(16px + env(safe-area-inset-bottom));
+  padding: 20px 12px 34px;
   display: flex;
-  gap: 16px;
+  gap: 0;
   animation: slideUp 0.25s ease;
 }
 @keyframes slideUp {
@@ -285,88 +244,121 @@
   gap: 8px;
 }
 .action-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
 }
-.action-icon-box.camera { background: #EFF6FF; }
-.action-icon-box.call { background: #ECFDF5; }
-.action-icon-box.video { background: #FAF5FF; }
+/* Flutter design colors for 4 action icons */
+.action-icon-box.take-photo { background: linear-gradient(135deg, #FBE9E7, #FFF3E0); }
+.action-icon-box.photo-album { background: linear-gradient(135deg, #E8F5E9, #F1F8E9); }
+.action-icon-box.voice-call { background: linear-gradient(135deg, #E3F2FD, #EDE7F6); }
+.action-icon-box.video-call { background: linear-gradient(135deg, #F3E5F5, #EDE7F6); }
 .action-label {
-  font-size: 13px;
-  color: #6B7280;
+  font-size: 12px;
+  color: #666;
+}
+.action-icon-img {
+  width: 30px;
+  height: 30px;
+}
+.album-icon-wrap {
+  width: 32px;
+  height: 32px;
+  position: relative;
+}
+.album-circle {
+  position: absolute;
+  width: 16.66%;
+  height: 16.66%;
+  left: 29.17%;
+  top: 29.17%;
+}
+.album-mountain {
+  position: absolute;
+  width: 62.5%;
+  height: 40.3%;
+  left: 25%;
+  top: 47.2%;
 }
 
-/* ===== 通话界面 ===== */
-.call-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ===== 系统通知只读提示 ===== */
+.system-hint {
+  text-align: center;
+  padding: 14px 16px;
+  background: #F9FAFB;
+  border-top: 1px solid #EDEDED;
+  color: #9CA3AF;
+  font-size: 13px;
 }
-.call-card {
-  width: 260px;
+
+/* ===== 申请卡片（request 类型消息） ===== */
+.request-card-wrap {
+  align-self: center !important;
+  width: 90%;
+  max-width: 300px;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  margin: 4px auto;
+}
+.request-card {
   background: white;
-  border-radius: 20px;
-  padding: 36px 24px 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  border-radius: var(--radius-card, 16px);
+  padding: 16px;
+  border: 1px solid #EDEDED;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.02));
 }
-.call-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: #1A6EFF;
-  color: white;
-  font-size: 28px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-.call-name {
-  font-size: 18px;
+.request-card-title {
+  display: block;
+  font-size: 15px;
   font-weight: 700;
   color: #1F2937;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
-.call-type-label {
+.request-card-body {
+  display: block;
   font-size: 13px;
   color: #6B7280;
-  margin-bottom: 2px;
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
-.call-status-text {
-  font-size: 13px;
-  color: #9CA3AF;
-  margin-bottom: 28px;
-}
-.call-btn-row {
+.request-card-actions {
   display: flex;
-  gap: 24px;
+  gap: 10px;
 }
-.call-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.rcard-btn {
+  flex: 1;
+  height: 38px;
+  border-radius: var(--radius-tag, 8px);
+  font-size: 14px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
+  border: none;
+  transition: all 0.2s;
+}
+.rcard-btn::after { border: none; }
+.rcard-btn.approve {
+  background: var(--primary, #1A6EFF);
   color: white;
 }
-.call-btn.decline { background: #EF4444; }
-.call-btn.accept { background: #22C55E; }
-.call-btn.hangup { background: #EF4444; }
+.rcard-btn.approve:active { opacity: 0.85; }
+.rcard-btn.reject {
+  background: #F7F8FA;
+  color: #6B7280;
+  border: 1px solid #EDEDED;
+}
+.rcard-btn.reject:active { background: #F3F4F6; }
+.request-card-done {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  padding: 4px 0;
+}

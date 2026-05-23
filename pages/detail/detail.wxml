@@ -3,55 +3,105 @@
   <!-- 自定义导航 -->
   <view class="nav-bar">
     <view class="nav-back" bindtap="goBack">
-      <text class="nav-back-icon">{{icons.back}}</text>
-      <text class="nav-back-text">返回</text>
+      <image class="nav-back-icon" src="/images/arrowleft1.png" mode="aspectFit" />
     </view>
     <text class="nav-title">物品详情</text>
     <view class="nav-placeholder"></view>
   </view>
 
   <scroll-view class="body" scroll-y>
-    <image wx:if="{{item.images && item.images.length > 0}}" class="detail-image" src="{{item.images[0]}}" mode="aspectFill" />
-    <view wx:else class="detail-image" style="background-color: {{item.catColor.bg}}">
+    <!-- 图片区 -->
+    <view wx:if="{{item.images && item.images.length > 0}}" class="detail-image-wrap">
+      <swiper class="detail-swiper" current="{{swiperIndex}}" bindchange="onSwiperChange" circular="{{false}}">
+        <swiper-item wx:for="{{item.images}}" wx:key="*this">
+          <image class="detail-image" src="{{item}}" mode="aspectFill" />
+        </swiper-item>
+      </swiper>
+      <view wx:if="{{item.images.length > 1}}" class="image-counter-wrap">
+        <text class="image-counter">{{swiperIndex + 1}}/{{item.images.length}}</text>
+      </view>
+    </view>
+    <view wx:else class="detail-image-placeholder" style="background-color: {{item.catColor.bg}}">
       <text class="detail-cat-label" style="color: {{item.catColor.text}}">{{item.category}}</text>
     </view>
 
-    <view class="detail-card">
-      <text class="detail-title">{{item.title}}</text>
+    <!-- 标题 + 标签 -->
+    <view class="detail-section-title">
+      <view class="title-row">
+        <text class="detail-title">{{item.title}}</text>
+        <text class="detail-time">{{item.time}}</text>
+      </view>
       <view class="detail-tags">
-        <text class="item-tag category">{{item.category}}</text>
-        <text class="item-tag condition">{{item.condition}}</text>
-        <text class="status-badge {{item.status}}">{{item.status === 'available' ? '可领取' : '已被领取'}}</text>
+        <text class="detail-tag category">{{item.category}}</text>
+        <text class="detail-tag condition">{{item.condition}}</text>
+        <text wx:if="{{item.status === 'available'}}" class="detail-tag status">可领取</text>
+        <text wx:else class="detail-tag status" style="background:#F3F4F6;color:#6B7280;">已被领取</text>
       </view>
-
-      <view class="detail-meta">
-        <view class="meta-item">
-          <text class="meta-label">所在楼栋</text>
-          <text class="meta-value">{{item.location}}</text>
-        </view>
-        <view class="meta-item">
-          <text class="meta-label">发布时间</text>
-          <text class="meta-value">{{item.time}}</text>
-        </view>
-      </view>
-
-      <view class="detail-owner">
-        <image wx:if="{{ownerAvatar}}" class="owner-avatar" src="{{ownerAvatar}}" mode="aspectFill" />
-        <view wx:else class="owner-avatar">{{ownerInitial}}</view>
-        <view class="owner-info">
-          <text class="owner-name">{{ownerName}}</text>
-          <text class="owner-community">{{ownerCommunity}}</text>
-        </view>
-      </view>
-
-      <text class="detail-desc">{{item.desc}}</text>
     </view>
 
+    <view class="section-gap"></view>
+
+    <!-- 小区/楼栋信息 -->
+    <view class="detail-section-meta">
+      <view class="meta-item">
+        <text class="meta-label">所在小区</text>
+        <text class="meta-value">{{item.community || ownerCommunity || '—'}}</text>
+      </view>
+      <view class="meta-divider"></view>
+      <view class="meta-item">
+        <text class="meta-label">所在楼栋</text>
+        <text class="meta-value">{{item.location || '未填写'}}</text>
+      </view>
+    </view>
+
+    <view class="section-gap"></view>
+
+    <!-- 物主信息 -->
+    <view class="detail-section-owner">
+      <image wx:if="{{ownerAvatar}}" class="owner-avatar img" src="{{ownerAvatar}}" mode="aspectFill" />
+      <view wx:else class="owner-avatar text">{{ownerInitial}}</view>
+      <view class="owner-info">
+        <text class="owner-name">{{ownerName}}</text>
+        <text class="owner-community">{{ownerCommunity}}</text>
+      </view>
+    </view>
+
+    <view class="section-gap"></view>
+
+    <!-- 物品描述 -->
+    <view class="detail-section-desc">
+      <text class="desc-label">物品描述</text>
+      <text class="detail-desc">{{item.desc || '暂无描述'}}</text>
+    </view>
+
+    <!-- 物主视角：申请列表 -->
+    <view wx:if="{{showRequestList}}" class="request-section">
+      <view class="request-section-header">
+        <text class="request-section-title">待处理申请</text>
+        <view class="request-count-badge">{{pendingRequests.length}}</view>
+      </view>
+      <view class="request-item" wx:for="{{pendingRequests}}" wx:key="id">
+        <view class="request-user">
+          <view wx:if="{{item.userAvatar}}" class="request-avatar" style="background-image:url({{item.userAvatar}})"></view>
+          <view wx:else class="request-avatar text-avatar">{{item.userName.charAt(0)}}</view>
+          <view class="request-info">
+            <text class="request-name">{{item.userName}}</text>
+            <text class="request-time">{{item.time}}</text>
+          </view>
+        </view>
+        <view class="request-actions">
+          <button class="request-btn approve" bindtap="approveRequest" data-reqid="{{item.id}}">批准</button>
+          <button class="request-btn reject" bindtap="rejectRequest" data-reqid="{{item.id}}">拒绝</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作按钮（内联，保留 scroll 内的间距） -->
     <view class="detail-actions">
-      <button wx:if="{{showRequest}}" class="action-btn primary" bindtap="requestItem">{{icons.heart}} 申请领取</button>
-      <button wx:elif="{{showApplied}}" class="action-btn disabled" disabled>{{icons.check}} 已申请，等待回复</button>
+      <button wx:if="{{showRequest}}" class="action-btn primary" bindtap="requestItem">申请领取</button>
+      <button wx:elif="{{showApplied}}" class="action-btn disabled" disabled>已申请，等待回复</button>
       <button wx:if="{{showContact}}" class="action-btn secondary" bindtap="contactOwner">联系分享人</button>
-      <button wx:if="{{showMarkClaimed}}" class="action-btn secondary" bindtap="markClaimed">标记为已被领取</button>
+      <button wx:if="{{showMarkClaimed}}" class="action-btn disabled" disabled>期待新主人中…</button>
     </view>
   </scroll-view>
   </view>

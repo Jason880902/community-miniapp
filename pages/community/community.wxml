@@ -5,8 +5,13 @@
     </view>
 
     <view class="community-banner">
-      <text class="community-icon">{{icons.TAB_ICONS.community}}</text>
-      <text class="community-name">{{communityName}}</text>
+      <view class="community-icon">
+        <image class="community-icon-img" src="/images/building22.png" mode="aspectFit" />
+      </view>
+      <view class="community-banner-text">
+        <text class="community-name">{{communityName}}</text>
+        <text class="community-subtitle">我们的共同家园</text>
+      </view>
     </view>
 
     <view class="stats-row">
@@ -46,23 +51,23 @@
   <view class="tab-bar">
     <view class="tab-inner">
       <view class="tab-item" bindtap="goHome">
-        <text class="tab-icon">{{icons.TAB_ICONS.home}}</text>
+        <image class="tab-icon" src="/images/home2.png" mode="aspectFit" />
         <text class="tab-label">首页</text>
       </view>
       <view class="tab-item active">
-        <text class="tab-icon">{{icons.TAB_ICONS.community}}</text>
+        <image class="tab-icon" src="/images/building23.png" mode="aspectFit" />
         <text class="tab-label">小区</text>
       </view>
       <view class="tab-item tab-post" bindtap="goPost">
-        <text class="tab-icon">{{icons.TAB_ICONS.post}}</text>
+        <image class="tab-icon" src="/images/pluscircle3.png" mode="aspectFit" />
         <text class="tab-label">发布</text>
       </view>
       <view class="tab-item" bindtap="goMessages">
-        <text class="tab-icon">{{icons.TAB_ICONS.msg}}</text>
+        <image class="tab-icon" src="/images/messagecircle3.png" mode="aspectFit" />
         <text class="tab-label">消息</text>
       </view>
       <view class="tab-item" bindtap="goProfile">
-        <text class="tab-icon">{{icons.TAB_ICONS.me}}</text>
+        <image class="tab-icon" src="/images/user2.png" mode="aspectFit" />
         <text class="tab-label">我的</text>
       </view>
     </view>

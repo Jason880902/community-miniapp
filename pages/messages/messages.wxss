@@ -1,40 +1,50 @@
 .page {
   min-height: 100vh;
-  background: #EDF4FF;
+  background: #F5F6FA;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
 }
 .page-inner {
   width: 100%;
   max-width: 430px;
   flex: 1;
   padding-bottom: 70px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .nav-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
+  padding: 0 16px;
+  height: 48px;
+  box-sizing: border-box;
   background: white;
+  border-bottom: 1px solid #EDEDED;
 }
-.nav-title { font-size: 17px; font-weight: 600; }
+.nav-title { font-size: 17px; font-weight: 600; color: #1F2937; }
 
-.list { background: white; }
+.list { background: white; border-radius: var(--radius-card, 16px); margin: 12px; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.04)); }
 
 .conversation-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border, #E5E7EB);
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid #EDEDED;
 }
+.conversation-item:last-child { border-bottom: none; }
+.conversation-item:active { background: #F9FAFB; }
+.conversation-item:first-child { border-top-left-radius: var(--radius-card, 16px); border-top-right-radius: var(--radius-card, 16px); }
+.conversation-item:last-child { border-bottom-left-radius: var(--radius-card, 16px); border-bottom-right-radius: var(--radius-card, 16px); }
 .conv-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--secondary, #22D3EE);
+  background: linear-gradient(135deg, #22D3EE, #1A6EFF);
   color: white;
   display: flex;
   align-items: center;
@@ -42,94 +52,64 @@
   font-size: 20px;
   font-weight: 600;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(34,211,238,0.25);
 }
 .conv-info { flex: 1; min-width: 0; }
 .conv-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
 .conv-name { font-size: 15px; font-weight: 600; color: #1F2937; }
-.conv-time { font-size: 12px; color: var(--text-light, #9CA3AF); }
-.conv-preview { font-size: 13px; color: var(--text-secondary, #6B7280); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.conv-item { font-size: 12px; color: var(--text-light, #9CA3AF); display: block; margin-top: 2px; }
+.conv-time { font-size: 12px; color: #9CA3AF; }
+.conv-preview { font-size: 13px; color: #6B7280; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-item { font-size: 12px; color: #9CA3AF; display: block; margin-top: 3px; }
 .conv-unread {
-  background: var(--danger, #EF4444);
+  background: #EF4444;
   color: white;
   font-size: 11px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  padding: 0 2px;
+  box-shadow: 0 2px 6px rgba(239,68,68,0.3);
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
-  color: var(--text-light, #9CA3AF);
-}
-
-/* ===== 底部标签栏 ===== */
-.tab-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  background: white;
-  border-top: 1px solid #EDEDED;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.tab-inner {
-  width: 100%;
-  max-width: 430px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 2px;
-  padding: 0 8px;
-  box-sizing: border-box;
-}
-.tab-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding: 80px 20px;
   color: #9CA3AF;
-  position: relative;
-  height: 50px;
+}
+.empty-state text { font-size: 14px; }
+
+/* 继承 app.wxss .empty-wrap 样式 */
+
+/* ===== 消息横幅 ===== */
+.msg-banner {
+  background: linear-gradient(135deg, #1A6EFF 0%, #6366F1 100%);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 12px 0;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 4px 16px rgba(26,110,255,0.2);
+}
+.msg-banner-icon {
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  gap: 1px;
-  transition: all 0.2s;
+  background: rgba(255,255,255,0.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-.tab-item.active {
-  color: white;
-  background: #1A6EFF;
-}
-.tab-post {
-  background: #1A6EFF;
-  color: white;
-}
-.tab-item.active .tab-icon,
-.tab-post .tab-icon { color: white; }
-.tab-icon { font-size: 16px; line-height: 1.2; }
-.tab-label { font-size: 10px; font-weight: 500; line-height: 1.2; }
-.tab-badge {
-  position: absolute;
-  top: 0;
-  right: 50%;
-  margin-right: -20px;
-  background: #EF4444;
-  color: white;
-  font-size: 8px;
-  padding: 1px 4px;
-  border-radius: 8px;
-  min-width: 14px;
-  text-align: center;
-  line-height: 1.2;
-}
+.msg-banner-img { width: 22px; height: 22px; display: block; }
+.msg-banner-text { display: flex; flex-direction: column; gap: 2px; }
+.msg-banner-title { font-size: 18px; font-weight: 700; color: white; letter-spacing: 0.5px; }
+.msg-banner-sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+/* Tab Bar 见 app.wxss（Flutter pill 设计） */

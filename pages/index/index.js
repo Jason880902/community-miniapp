@@ -15,10 +15,11 @@ Page({
     unreadCount: 0,
     firstLoad: true,
     indicatorLeft: 0,
-    indicatorWidth: 0
+    indicatorWidth: 0,
+    columnMode: 'single'
   },
 
-  onShow() {
+  async onShow() {
     if (!app.globalData.isLogin) {
       wx.redirectTo({ url: '/pages/login/login' });
       return;
@@ -28,38 +29,41 @@ Page({
       community: user.community,
       userInitial: user.name.charAt(0)
     });
-    this.loadItems();
+    await this.loadItems();
     this.updateUnread();
     this.calcIndicator('all', 0);
   },
 
-  loadItems() {
-    const items = DB.getAvailableItems(this.data.selectedCat);
+  async loadItems() {
+    const user = app.globalData.userInfo;
+    const items = await DB.getAvailableItems(this.data.selectedCat, user?.community);
     const query = this.data.searchQuery.trim().toLowerCase();
     let filtered = items;
     if (query) {
       filtered = items.filter(i => i.title.toLowerCase().includes(query));
     }
+    // 批量查用户
+    const allUsers = await DB.getAllUsers();
+    const userMap = {};
+    allUsers.forEach(u => { userMap[u.userId] = u; });
+
     this.setData({
-      items: filtered.map(i => {
-        const owner = DB.getUserById(i.userId);
-        return {
-          ...i,
-          catColor: util.getCategoryColor(i.category),
-          ownerName: owner ? owner.name : '邻居',
-          time: util.formatTime(i.createTime)
-        };
-      })
+      items: filtered.map(i => ({
+        ...i,
+        catColor: util.getCategoryColor(i.category),
+        ownerName: userMap[i.userId] ? userMap[i.userId].name : '邻居',
+        time: util.formatTime(i.createTime)
+      }))
     });
   },
 
-  filterCategory(e) {
+  async filterCategory(e) {
     const cat = e.currentTarget.dataset.cat;
     this.setData({
       selectedCat: cat,
       firstLoad: false
     });
-    this.loadItems();
+    await this.loadItems();
     this.calcIndicator(cat, 0);
   },
 
@@ -83,9 +87,9 @@ Page({
     // 保留 scroll 事件占位，后续可用于加载更多
   },
 
-  onSearch(e) {
+  async onSearch(e) {
     this.setData({ searchQuery: e.detail.value });
-    this.loadItems();
+    await this.loadItems();
   },
 
   openDetail(e) {
@@ -109,14 +113,20 @@ Page({
     wx.redirectTo({ url: '/pages/profile/profile' });
   },
 
+  toggleColumn(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ columnMode: mode });
+  },
+
   onScrollMore() {
     // 已加载全部，无需分页
   },
 
-  updateUnread() {
-    const user = DB.getCurrentUser();
+  async updateUnread() {
+    const user = app.globalData.userInfo;
     if (user) {
-      this.setData({ unreadCount: DB.countUnread(user.id) });
+      const count = await DB.countUnread(user.id);
+      this.setData({ unreadCount: count });
     }
   }
 });

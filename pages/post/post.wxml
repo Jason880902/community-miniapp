@@ -2,72 +2,114 @@
   <view class="page-inner">
   <view class="nav-bar">
     <view class="nav-back" bindtap="goBack">
-      <text class="nav-back-icon">{{icons.close}}</text>
+      <image class="nav-back-icon" src="/images/arrowleft.png" mode="aspectFit" />
     </view>
-    <text class="nav-title">发布物品</text>
+    <text class="nav-title">{{isEdit ? '编辑物品' : '发布物品'}}</text>
     <view class="nav-placeholder"></view>
   </view>
 
   <scroll-view class="body" scroll-y>
-    <!-- 图片上传 -->
-    <view class="form-group">
-      <text class="form-label">物品照片</text>
-      <view class="image-grid">
-        <view class="image-item" wx:for="{{images}}" wx:key="index">
-          <image class="image-preview" src="{{item}}" mode="aspectFill" />
-          <view class="image-delete" data-index="{{index}}" bindtap="removeImage">{{icons.close}}</view>
+    <!-- 图片上传卡片 -->
+    <view class="form-card">
+      <view class="form-group">
+        <text class="form-label">物品照片</text>
+        <view class="image-grid">
+          <view class="image-item" wx:for="{{images}}" wx:key="index">
+            <image class="image-preview" src="{{item}}" mode="aspectFill" />
+            <view class="image-delete" data-index="{{index}}" bindtap="removeImage">{{icons.close}}</view>
+            <view wx:if="{{index === coverIndex}}" class="image-cover-badge" catchtap="setCover" data-index="{{index}}">封面</view>
+            <view wx:else class="image-cover-btn" catchtap="setCover" data-index="{{index}}">设为封面</view>
+          </view>
+          <view wx:if="{{images.length < maxImages}}" class="image-uploader" bindtap="chooseImage">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">拍照/上传</text>
+          </view>
         </view>
-        <view wx:if="{{images.length < maxImages}}" class="image-uploader" bindtap="chooseImage">
-          <text class="upload-icon">+</text>
-          <text class="upload-text">拍照/上传</text>
+      </view>
+    </view>
+
+    <!-- AI 识别卡片 -->
+    <view class="form-card" wx:if="{{images.length > 0}}">
+      <view class="form-group">
+        <view wx:if="{{aiLoading}}" class="ai-loading">
+          <view class="ai-loading-spin"></view>
+          <text class="ai-loading-text">AI 正在识别物品...</text>
+        </view>
+
+        <view wx:elif="{{aiResult}}" class="ai-result-card">
+          <view class="ai-result-header">
+            <image class="ai-result-icon" src="/images/sparkles.png" mode="aspectFit" />
+            <text class="ai-result-title">AI 识别结果</text>
+            <text wx:if="{{aiResult.confidence}}" class="ai-result-conf">{{aiResult.confidence}}</text>
+          </view>
+          <view class="ai-result-body">
+            <text class="ai-result-label">类别：</text>
+            <text class="ai-result-value">{{aiResult.category || '未识别'}}</text>
+            <text wx:if="{{aiResult.condition}}" class="ai-result-label" style="margin-left:12px;">成色：</text>
+            <text wx:if="{{aiResult.condition}}" class="ai-result-value">{{aiResult.condition}}</text>
+          </view>
+          <view wx:if="{{aiResult.note}}" class="ai-result-note">{{aiResult.note}}</view>
+          <view wx:if="{{!aiResult.category || aiResult.confidence === '0%'}}" class="ai-retry-row">
+            <button class="ai-retry-btn" bindtap="retryAiClassify">填完标题后重试识别</button>
+          </view>
+        </view>
+
+        <button wx:if="{{!aiLoading && !aiResult}}" class="ai-btn" bindtap="aiClassify">
+          <text class="ai-btn-text">AI 智能识别</text>
+          <text class="ai-btn-arrow">{{icons.arrow}}</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 表单卡片 -->
+    <view class="form-card">
+      <view class="form-group">
+        <text class="form-label">
+          物品名称 <text class="required">*</text>
+          <text wx:if="{{aiAutoFilled.title}}" class="auto-badge">AI 识别</text>
+        </text>
+        <input class="form-input {{aiAutoFilled.title ? 'auto-filled' : ''}}" placeholder="如：实木书桌" maxlength="50" bindinput="onField" data-field="title" value="{{formData.title}}" />
+      </view>
+
+      <view class="form-group" style="margin-top:16px;">
+        <text class="form-label">
+          类别 <text class="required">*</text>
+          <text wx:if="{{aiAutoFilled.category}}" class="auto-badge">AI 识别</text>
+        </text>
+        <picker class="form-picker" mode="selector" range="{{categories}}" bindchange="onCategoryChange">
+          <view class="picker-value {{aiAutoFilled.category ? 'auto-filled' : ''}}">{{formData.category || '请选择类别'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-group" style="margin-top:16px;">
+        <text class="form-label">
+          成色 <text class="required">*</text>
+          <text wx:if="{{aiAutoFilled.condition}}" class="auto-badge">AI 识别</text>
+        </text>
+        <view class="condition-list">
+          <view class="condition-item {{activeCondition === item ? 'active' : ''}}" wx:for="{{conditions}}" wx:key="*this" data-condition="{{item}}" bindtap="selectCondition">{{item}}</view>
         </view>
       </view>
-    </view>
 
-    <!-- AI 识别 -->
-    <view class="ai-section" wx:if="{{images.length > 0}}">
-      <button class="ai-btn" bindtap="aiClassify" disabled="{{aiLoading}}">
-        <text class="ai-btn-text">{{aiLoading ? 'AI识别中...' : 'AI 智能识别'}}</text>
-        <text wx:if="{{!aiLoading}}" class="ai-btn-arrow">{{icons.arrow}}</text>
-      </button>
-      <view wx:if="{{aiResult}}" class="ai-result">
-        <text class="ai-result-label">识别结果：</text>
-        <text class="ai-result-cat">{{aiResult.category}}</text>
-        <text class="ai-result-conf">{{aiResult.confidence}}</text>
-        <text class="ai-result-hint">如不准确可手动修改下方信息</text>
+      <view class="form-group" style="margin-top:16px;">
+        <view class="form-label-row">
+          <text class="form-label">物品描述</text>
+          <view class="desc-actions">
+            <text wx:if="{{descGenerating}}" class="desc-generating">AI 生成中...</text>
+            <text wx:elif="{{formData.desc && aiAutoFilled.desc}}" class="desc-regenerate" bindtap="regenerateDesc">重新生成</text>
+          </view>
+        </view>
+        <textarea class="form-textarea {{aiAutoFilled.desc ? 'auto-filled' : ''}}" placeholder="AI 将根据物品信息自动生成描述，也可手动输入" bindinput="onField" data-field="desc" value="{{formData.desc}}" />
+        <text wx:if="{{aiAutoFilled.desc}}" class="auto-hint">✏️ 可编辑修改</text>
+      </view>
+
+      <view class="form-group" style="margin-top:16px;">
+        <text class="form-label">所在楼栋 <text class="required" style="color:#9CA3AF;">选填</text></text>
+        <input class="form-input" placeholder="如：3号楼2单元" maxlength="20" bindinput="onField" data-field="location" value="{{formData.location}}" />
       </view>
     </view>
 
-    <view class="form-group">
-      <text class="form-label">物品名称 <text class="required">*</text></text>
-      <input class="form-input" placeholder="如：实木书桌" maxlength="50" bindinput="onField" data-field="title" value="{{formData.title}}" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">类别 <text class="required">*</text></text>
-      <picker class="form-picker" mode="selector" range="{{categories}}" bindchange="onCategoryChange">
-        <view class="picker-value">{{formData.category || '请选择类别'}}</view>
-      </picker>
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">成色 <text class="required">*</text></text>
-      <view class="condition-list">
-        <view class="condition-item {{formData.condition === c ? 'active' : ''}}" wx:for="{{conditions}}" wx:key="*this" data-condition="{{item}}" bindtap="selectCondition">{{item}}</view>
-      </view>
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">物品描述</text>
-      <textarea class="form-textarea" placeholder="描述物品的使用情况、尺寸等" bindinput="onField" data-field="desc" value="{{formData.desc}}" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">所在楼栋</text>
-      <input class="form-input" placeholder="如：3号楼2单元" maxlength="20" bindinput="onField" data-field="location" value="{{formData.location}}" />
-    </view>
-
-    <button class="submit-btn" bindtap="submitPost" disabled="{{!canSubmit}}">发布物品</button>
+    <button class="submit-btn" bindtap="submitPost" disabled="{{!canSubmit}}">{{isEdit ? '保存并重新发布' : '发布物品'}}</button>
   </scroll-view>
   </view>
 </view>

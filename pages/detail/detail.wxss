@@ -1,9 +1,10 @@
 .page {
   min-height: 100vh;
-  background: #F7F8FA;
+  background: #F5F6FA;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
 }
 .page-inner {
   width: 100%;
@@ -11,39 +12,121 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* ===== 详情分区（Flutter 灰度分隔） ===== */
+.detail-section-title {
+  background: white;
+  padding: 16px 16px 12px;
+}
+
+.detail-section-meta {
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+}
+.meta-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 16px;
+  gap: 4px;
+  height: 60px;
+}
+.meta-divider {
+  width: 1px;
+  height: 32px;
+  background: #EDEDED;
+  flex-shrink: 0;
+}
+.meta-label { font-size: 12px; color: #9CA3AF; font-weight: 500; letter-spacing: 0.2px; }
+.meta-value { font-size: 14px; font-weight: 500; color: #1F2937; }
+
+.detail-section-owner {
+  background: white;
+  height: 76px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-section-desc {
+  background: white;
+  padding: 16px;
+}
+.desc-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 8px;
+}
+.detail-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6B7280;
+  display: block;
 }
 
 /* ===== 导航栏 ===== */
 .nav-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
-.nav-back { display: flex; align-items: center; gap: 4px; }
-.nav-back-icon { font-size: 20px; }
-.nav-back-text { font-size: 14px; }
 .nav-title { font-size: 16px; font-weight: 600; color: #1F2937; }
 .nav-placeholder { width: 60px; }
 
 .body {
   flex: 1;
-  padding: 12px 16px;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
+.detail-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+}
+.detail-swiper {
+  width: 100%;
+  height: 100%;
+}
 .detail-image {
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  overflow: hidden;
+}
+.detail-image-placeholder {
+  width: 100%;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-counter-wrap {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+}
+.image-counter {
+  background: rgba(0,0,0,0.52);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  line-height: 1.4;
 }
 .detail-cat-label {
   font-size: 22px;
@@ -51,72 +134,164 @@
   letter-spacing: 2px;
 }
 
-.detail-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 12px;
-}
-.detail-title { font-size: 18px; font-weight: 700; display: block; margin-bottom: 10px; color: #1F2937; }
-.detail-tags { display: flex; gap: 6px; margin-bottom: 14px; }
-
-.detail-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid #EDEDED;
-  margin-bottom: 12px;
-}
-.meta-item { display: flex; flex-direction: column; gap: 2px; }
-.meta-label { font-size: 12px; color: #9CA3AF; }
-.meta-value { font-size: 14px; font-weight: 500; color: #1F2937; }
-
-.detail-owner {
-  display: flex;
+.title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.detail-title { font-size: 18px; font-weight: 700; color: #1F2937; line-height: 1.3; flex: 1; }
+.detail-time { font-size: 12px; color: #9CA3AF; flex-shrink: 0; padding-top: 4px; }
+.detail-tags { display: flex; gap: 6px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+.detail-tag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-tag, 6px);
+  font-weight: 500;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid #EDEDED;
-  border-bottom: 1px solid #EDEDED;
-  margin-bottom: 12px;
 }
+.detail-tag.category { background: #EFF6FF; color: var(--primary, #1A6EFF); }
+.detail-tag.condition { background: #ECFDF5; color: var(--success, #10B981); }
+.detail-tag.status { background: #ECFDF5; color: var(--success, #10B981); }
+
 .owner-avatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #1A6EFF;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.owner-avatar.img { display: block; }
+.owner-avatar.text {
+  background: linear-gradient(135deg, #1A6EFF, #4F46E5);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
-  flex-shrink: 0;
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(26,110,255,0.2);
 }
 .owner-info { flex: 1; }
 .owner-name { font-size: 15px; font-weight: 600; display: block; color: #1F2937; }
-.owner-community { font-size: 13px; color: #6B7280; display: block; }
+.owner-community { font-size: 12px; color: #9CA3AF; display: block; margin-top: 3px; }
 
-.detail-desc {
-  font-size: 14px;
-  line-height: 1.7;
-  color: #6B7280;
-  display: block;
+/* ===== 8px 灰色分割区（对齐 Flutter） ===== */
+.section-gap {
+  height: 8px;
+  background: #F7F8FA;
 }
 
-.detail-actions { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+/* ===== 详情标签（Flutter 风格） ===== */
+.detail-tag-chip {
+  height: 24px;
+  line-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-tag, 6px);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ===== 申请列表 ===== */
+.request-section {
+  background: white;
+  border-radius: var(--radius-card, 16px);
+  padding: 16px;
+  margin: 8px 16px 12px;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.02));
+  border: 1px solid #EFF6FF;
+}
+.request-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #EDEDED;
+}
+.request-section-title { font-size: 15px; font-weight: 600; color: #1F2937; }
+.request-count-badge {
+  background: #1A6EFF;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.request-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #F3F4F6;
+}
+.request-item:first-of-type { border-top: none; }
+.request-user { display: flex; align-items: center; gap: 12px; flex: 1; }
+.request-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #22D3EE, #1A6EFF);
+  background-size: cover; background-position: center;
+  flex-shrink: 0;
+}
+.request-avatar.text-avatar {
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 14px; font-weight: 600;
+}
+.request-info { display: flex; flex-direction: column; gap: 3px; }
+.request-name { font-size: 14px; font-weight: 600; color: #1F2937; }
+.request-time { font-size: 12px; color: #9CA3AF; }
+.request-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.request-btn {
+  height: 34px; line-height: 34px; padding: 0 16px;
+  border-radius: var(--radius-btn, 10px); font-size: 13px; font-weight: 600;
+  transition: all 0.2s; border: none;
+}
+.request-btn.approve { background: #1A6EFF; color: white; box-shadow: 0 2px 8px rgba(26,110,255,0.25); }
+.request-btn.approve:active { opacity: 0.85; transform: scale(0.97); }
+.request-btn.reject { background: #F3F4F6; color: #6B7280; }
+.request-btn.reject:active { background: #E5E7EB; }
+.request-btn::after { border: none; }
+
+/* ===== 底部操作按钮（Flutter 83h 设计） ===== */
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 83px;
+  padding: 0 16px;
+  background: white;
+  border-top: 1px solid var(--border, #EDEDED);
+  box-sizing: border-box;
+}
 .action-btn {
-  width: 100%;
-  height: 46px;
-  border-radius: 8px;
+  height: 48px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
+  border: none;
 }
-.action-btn.primary { background: #1A6EFF; color: white; }
-.action-btn.secondary { background: white; color: #1F2937; border: 2px solid #EDEDED; }
-.action-btn.disabled { background: #9CA3AF; color: white; }
-.action-btn::after { border: none; }
+.action-btn.primary {
+  flex: 2;
+  background: var(--primary, #1A6EFF);
+  color: white;
+  box-shadow: 0 4px 12px rgba(26,110,255,0.27);
+}
+.action-btn.primary:active { opacity: 0.85; transform: scale(0.98); }
+.action-btn.secondary {
+  flex: 1;
+  background: #F7F8FA;
+  color: #6B7280;
+  border: 1px solid #EDEDED;
+}
+.action-btn.secondary:active { background: #F3F4F6; }
+.action-btn.disabled {
+  flex: 2;
+  background: #F3F4F6;
+  color: #9CA3AF;
+}

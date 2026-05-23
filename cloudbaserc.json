@@ -1,0 +1,20 @@
+{
+  "envId": "cloud1-d6ghwnr2odbc94c82",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    {
+      "name": "classifyImage",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "ignore": ["**/*.md", "deploy_config.js"]
+    },
+    {
+      "name": "db",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "ignore": ["**/*.md"]
+    }
+  ]
+}

@@ -1,122 +1,369 @@
-// 云函数：classifyImage - 图片智能分类
-// 使用腾讯云 AI 的图像识别能力识别旧物类别
+// 云函数 classifyImage
+// 图片智能分类 + 描述生成
+// 使用 TC3-HMAC-SHA256 签名直接调用腾讯云 TIIA API（零外部依赖）
 //
-// 部署前需要在腾讯云开通「图像识别」服务
-// 并配置环境变量 TENCENT_SECRET_ID / TENCENT_SECRET_KEY
-//
-// 如果未配置 AI 服务，函数会基于图片文件名做关键词匹配降级
+// 配置环境变量 TENCENT_SECRET_ID / TENCENT_SECRET_KEY 启用 AI
+// 未配置时自动降级为关键词匹配
 
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
+const https = require('https');
+
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-// ===== 类别关键词映射表 =====
-const CATEGORY_KEYWORDS = [
-  { name: '家具家居', keywords: ['沙发', '桌子', '椅子', '床', '柜子', '茶几', '书架', '衣柜', '床垫'], desc: '看起来是件不错的家具，希望它能找到新主人。' },
-  { name: '电子产品', keywords: ['手机', '电脑', '平板', '耳机', '音箱', '相机', '手表', '充电器', '键盘', '鼠标', '显示器'], desc: '电子产品请确认功能正常，帮助环保减少电子垃圾。' },
-  { name: '书籍文具', keywords: ['书', '本子', '笔', '文具', '词典', '画册', '教材', '小说'], desc: '书籍是知识的载体，让阅读的快乐传递给下一个人。' },
-  { name: '服饰鞋包', keywords: ['衣服', '裤子', '鞋子', '帽子', '包包', '裙子', '外套', '围巾'], desc: '衣物清洗干净即可分享，环保又时尚。' },
-  { name: '母婴儿童', keywords: ['婴儿', '儿童', '玩具', '推车', '奶瓶', '童车', '积木', '娃娃'], desc: '宝宝长得快，很多物品还很新，分享给有需要的家庭吧。' },
-  { name: '运动户外', keywords: ['球', '球拍', '瑜伽', '哑铃', '跳绳', '泳镜', '帐篷', '登山'], desc: '运动器材让更多人动起来，发挥它的价值。' },
-  { name: '厨房用具', keywords: ['锅', '碗', '筷子', '勺子', '杯子', '水壶', '盘子', '电饭煲', '厨具'], desc: '厨房用品清洁后分享，让美食继续温暖更多人。' },
-  { name: '日用百货', keywords: ['灯', '收纳', '盒子', '镜子', '雨伞', '袋子', '挂钩', '置物架'], desc: '实用小物件，分享给有需要的邻居。' },
-  { name: '植物花卉', keywords: ['花', '绿植', '盆栽', '多肉', '植物', '花盆', '种子'], desc: '绿色植物让生活更美好，分享一份绿意。' },
+// 优先用环境变量，无则读本地配置文件（更可靠）
+let localConfig = {};
+try { localConfig = require('./config.js'); } catch (e) {}
+
+// ===== 类别知识库 =====
+const CATEGORIES = [
+  { name: '家具家居', en: 'furniture', keywords: ['沙发', '桌子', '椅子', '床', '柜子', '茶几', '书架', '衣柜', '床垫', '书桌', '鞋柜', '电视柜', '床头柜', '梳妆台', '餐桌', '凳子', '榻榻米', '屏风', '置物架', '花架', '电脑桌', '办公桌'], aliases: ['desk', 'table', 'chair', 'bed', 'cabinet', 'shelf', 'sofa', 'furniture', 'wardrobe'] },
+  { name: '电子产品', en: 'electronics', keywords: ['手机', '电脑', '平板', '耳机', '音箱', '相机', '手表', '充电器', '键盘', '鼠标', '显示器', '打印机', '路由器', '硬盘', 'U盘', '充电宝', '数据线', '机箱', '笔记本', 'iPad', '蓝牙', '麦克风', '摄像头', '投影仪', '游戏机', 'switch', 'ps4', 'ps5'], aliases: ['phone', 'computer', 'laptop', 'tablet', 'earphone', 'speaker', 'camera', 'keyboard', 'mouse', 'monitor', 'printer', 'router', 'electronic'] },
+  { name: '书籍文具', en: 'books', keywords: ['书', '本子', '笔', '文具', '词典', '画册', '教材', '小说', '绘本', '字帖', '文具盒', '书包', '笔记本', '手账', '贴纸', '明信片', '杂志', '漫画', '散文', '文学', '百科'], aliases: ['book', 'magazine', 'novel', 'stationery', 'pen', 'notebook'] },
+  { name: '服饰鞋包', en: 'clothing', keywords: ['衣服', '裤子', '鞋子', '帽子', '包包', '裙子', '外套', '围巾', '衬衫', 'T恤', '卫衣', '羽绒服', '风衣', '运动鞋', '皮鞋', '凉鞋', '拖鞋', '皮带', '钱包', '双肩包', '单肩包', '行李箱', '首饰', '手表带'], aliases: ['clothing', 'shirt', 'shoes', 'hat', 'bag', 'dress', 'coat', 'jacket', 'accessory'] },
+  { name: '母婴儿童', en: 'baby', keywords: ['婴儿', '儿童', '玩具', '推车', '奶瓶', '童车', '积木', '娃娃', '早教', '绘本', '摇铃', '磨牙', '餐椅', '婴儿床', '安全座椅', '学步车', '滑板车', '遥控车', '毛绒', '拼图', '乐高'], aliases: ['baby', 'toy', 'stroller', 'bottle', 'children', 'infant'] },
+  { name: '运动户外', en: 'sports', keywords: ['球', '球拍', '瑜伽', '哑铃', '跳绳', '泳镜', '帐篷', '登山', '跑步', '健身', '露营', '羽毛球', '篮球', '足球', '乒乓球', '护具', '运动手环', '水杯', '单车', '滑板', '轮滑'], aliases: ['ball', 'racket', 'yoga', 'dumbbell', 'sports', 'fitness', 'camping', 'tent', 'bike'] },
+  { name: '厨房用具', en: 'kitchen', keywords: ['锅', '碗', '筷子', '勺子', '杯子', '水壶', '盘子', '电饭煲', '厨具', '刀具', '砧板', '保鲜盒', '调味罐', '咖啡机', '豆浆机', '榨汁机', '烤箱', '微波炉', '餐具', '茶具', '酒具'], aliases: ['pot', 'pan', 'bowl', 'cup', 'kettle', 'kitchen', 'cookware', 'microwave', 'oven'] },
+  { name: '日用百货', en: 'daily', keywords: ['灯', '桶', '架', '收纳', '盒', '镜', '伞', '袋', '挂钩', '置物架', '衣架', '晾衣架', '收纳箱', '垃圾桶', '地毯', '窗帘', '抱枕', '靠垫', '装饰', '摆件', '相框', '钟表'], aliases: ['lamp', 'mirror', 'umbrella', 'organizer', 'curtain', 'cushion', 'decoration'] },
+  { name: '植物花卉', en: 'plants', keywords: ['花', '绿植', '盆栽', '多肉', '植物', '花盆', '种子', '花瓶', '鲜花', '富贵竹', '吊兰', '绿萝', '仙人掌', '兰花', '玫瑰', '百合', '郁金香'], aliases: ['plant', 'flower', 'pot', 'bonsai', 'succulent'] },
+  { name: '其他', en: 'other', keywords: ['药', '保健', '口罩', '体温', '乐器', '吉他', '钢琴', '小提琴', '画画', '颜料', '画板', '宠物', '猫', '狗', '鱼缸', '鸟笼'], aliases: ['other', 'music', 'pet', 'medicine'] }
 ];
 
-// ===== 从文件名提取关键词 =====
-function extractKeywords(fileName) {
-  const name = (fileName || '').toLowerCase().replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-  // 按常见分隔符切分
-  const parts = name.split(/[-_\s]+/);
-  // 过滤掉无意义的数字和时间戳
-  return parts.filter(p => p.length > 1 && !/^\d+$/.test(p));
+// ===== 描述模板（统一格式） =====
+const DESC_TEMPLATE = (t, c) => `${t}，${c}，希望它能找到新主人，继续发挥价值。`;
+
+const CONDITION_TEXT = {
+  '全新': '全新未拆封，包装完好',
+  '几乎全新': '几乎全新，仅使用过一两次',
+  '九成新': '九成新，使用痕迹很少',
+  '八成新': '八成新，正常使用痕迹',
+  '七成新': '七成新，有一定使用痕迹但不影响功能',
+  '有瑕疵': '有瑕疵，已标注出问题位置'
+};
+
+// ===== TC3-HMAC-SHA256 签名 =====
+function sha256(msg, key) {
+  return crypto.createHmac('sha256', key).update(msg).digest();
 }
 
-// ===== 基于关键词的匹配分类（降级方案） =====
-function classifyByKeywords(keywords) {
-  let bestMatch = { name: '其他', confidence: 50, desc: '如果分类不准确，请手动修改。' };
-  let maxScore = 0;
+function sha256Hex(msg) {
+  return crypto.createHash('sha256').update(msg).digest('hex');
+}
+function hmacSha256Hex(key, msg) {
+  return crypto.createHmac('sha256', key).update(msg).digest('hex');
+}
 
-  for (const cat of CATEGORY_KEYWORDS) {
+function signRequest(secretId, secretKey, service, action, version, region, payload, timestamp) {
+  const algorithm = 'TC3-HMAC-SHA256';
+  const date = new Date(timestamp * 1000).toISOString().slice(0, 10);
+
+  // 1. Canonical Request
+  const httpMethod = 'POST';
+  const canonicalUri = '/';
+  const canonicalQuery = '';
+  const canonicalHeaders = 'content-type:application/json\nhost:' + service + '.tencentcloudapi.com\n';
+  const signedHeaders = 'content-type;host';
+  const payloadStr = JSON.stringify(payload);
+  const hashedPayload = sha256Hex(payloadStr);
+  const canonicalRequest = [httpMethod, canonicalUri, canonicalQuery, canonicalHeaders, signedHeaders, hashedPayload].join('\n');
+
+  // 2. String to Sign
+  const credentialScope = date + '/' + service + '/tc3_request';
+  const hashedCanonicalRequest = sha256Hex(canonicalRequest);
+  const stringToSign = [algorithm, timestamp, credentialScope, hashedCanonicalRequest].join('\n');
+
+  // 3. Signing Key
+  const secretDate = sha256(date, 'TC3' + secretKey);
+  const secretService = sha256(service, secretDate);
+  const secretSigning = sha256('tc3_request', secretService);
+  const signature = hmacSha256Hex(secretSigning, stringToSign);
+
+  // 4. Authorization
+  const authorization = algorithm + ' Credential=' + secretId + '/' + credentialScope + ', SignedHeaders=' + signedHeaders + ', Signature=' + signature;
+
+  return { authorization, date, signedHeaders, hashedPayload, payloadStr };
+}
+
+// ===== 调用腾讯云 TIIA DetectLabel =====
+function callTIIA(imageBase64, secretId, secretKey) {
+  return new Promise((resolve, reject) => {
+    const service = 'tiia';
+    const action = 'DetectLabel';
+    const version = '2019-05-29';
+    const region = 'ap-guangzhou';
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const payload = {
+      ImageBase64: imageBase64,
+    };
+
+    const sig = signRequest(secretId, secretKey, service, action, version, region, payload, timestamp);
+
+    const options = {
+      hostname: service + '.tencentcloudapi.com',
+      port: 443,
+      path: '/',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Host': service + '.tencentcloudapi.com',
+        'X-TC-Action': action,
+        'X-TC-Timestamp': timestamp,
+        'X-TC-Version': version,
+        'X-TC-Region': region,
+        'Authorization': sig.authorization,
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (parsed.Response && parsed.Response.Error) {
+            reject(new Error(parsed.Response.Error.Message));
+          } else {
+            resolve(parsed.Response || parsed);
+          }
+        } catch (e) {
+          reject(new Error('parse failed: ' + body.slice(0, 200)));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(sig.payloadStr);
+    req.end();
+  });
+}
+
+// ===== AI 标签 → 分类映射 =====
+function mapLabelsToCategory(labels) {
+  const labelNames = labels.map(l => (l.Name || '').toLowerCase());
+  let bestCat = '其他';
+  let bestScore = 0;
+
+  for (const cat of CATEGORIES) {
     let score = 0;
-    for (const kw of keywords) {
-      for (const catKw of cat.keywords) {
-        if (kw.includes(catKw) || catKw.includes(kw)) {
-          score += 20;
+    // 检查英文 AI 标签是否匹配类别别名
+    for (const alias of cat.aliases) {
+      for (const label of labelNames) {
+        if (label.includes(alias) || alias.includes(label)) {
+          if (label === alias) score += 30;
+          else if (label.includes(alias)) score += 20;
+          else score += 10;
         }
       }
     }
-    if (score > maxScore) {
-      maxScore = score;
-      bestMatch = {
-        name: cat.name,
-        confidence: Math.min(60 + score, 95),
-        desc: cat.desc
-      };
+    // 检查中文关键词
+    for (const kw of cat.keywords) {
+      for (const label of labelNames) {
+        if (label.includes(kw.toLowerCase())) {
+          score += 25;
+        }
+      }
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestCat = cat.name;
     }
   }
 
-  bestMatch.confidence += '%';
-  return bestMatch;
+  // 取最高置信度标签的分数
+  const confidence = labels.length > 0 ? Math.round(Math.max(...labels.map(l => (l.Confidence || 0) * 100))) : 60;
+  return { category: bestCat, confidence: Math.min(confidence, 99) };
+}
+
+// ===== 降级：关键词匹配 =====
+function extractKeywords(fileName) {
+  const name = (fileName || '').toLowerCase().replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+  return name.split(/[-_\s]+/).filter(p => p.length > 1 && !/^\d+$/.test(p));
+}
+
+function classifyByKeywords(keywords) {
+  const scores = CATEGORIES.map(cat => {
+    let score = 0;
+    for (const kw of keywords) {
+      for (const catKw of cat.keywords) {
+        const k = kw.toLowerCase();
+        const ck = catKw.toLowerCase();
+        if (k === ck) score += 30;
+        else if (k.includes(ck) || ck.includes(k)) score += 20;
+      }
+      for (const alias of cat.aliases) {
+        if (kw === alias) score += 25;
+        else if (kw.includes(alias)) score += 15;
+      }
+    }
+    return { name: cat.name, score };
+  });
+
+  const best = scores.reduce((a, b) => a.score > b.score ? a : b);
+  return {
+    category: best.name,
+    confidence: Math.min(60 + best.score, 96) + '%'
+  };
+}
+
+function guessCondition(keywords) {
+  const kw = keywords.join(' ');
+  if (/全新|未拆|未用|包装|未开封/.test(kw)) return '全新';
+  if (/几乎|仅试|仅用/.test(kw)) return '几乎全新';
+  if (/九成|轻微|轻度/.test(kw)) return '九成新';
+  if (/八成/.test(kw)) return '八成新';
+  if (/七成/.test(kw)) return '七成新';
+  if (/瑕疵|破损|坏了|维修/.test(kw)) return '有瑕疵';
+  return '';
+}
+
+function generateDescription(category, condition, title) {
+  const condText = condition || '几乎全新';
+  if (title) {
+    return DESC_TEMPLATE(title, condText);
+  }
+  return DESC_TEMPLATE('一件' + category, condText);
+}
+
+// ===== 从 fileID 提取文件名关键词 =====
+function extractKeywordsFromFileID(fileID) {
+  if (!fileID) return [];
+  // fileID 格式: cloud://env-id.xxx/items/123456789.jpg
+  // 提取文件名部分
+  const fileName = fileID.split('/').pop() || '';
+  const name = fileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+  // 纯数字文件名无意义
+  if (/^\d+$/.test(name)) return [];
+  return name.split(/[-_\s]+/).filter(p => p.length > 1 && !/^\d+$/.test(p));
+}
+
+// ===== 根据标题做关键词匹配（比 fileID 准确） =====
+function classifyByTitle(title) {
+  if (!title) return { category: '', condition: '' };
+  const t = title.toLowerCase();
+  for (const cat of CATEGORIES) {
+    for (const kw of cat.keywords) {
+      if (t.includes(kw.toLowerCase())) {
+        return { category: cat.name, condition: guessCondition(t.split(/\s+/)) };
+      }
+    }
+    for (const alias of cat.aliases) {
+      if (t === alias || t.includes(alias)) {
+        return { category: cat.name, condition: guessCondition(t.split(/\s+/)) };
+      }
+    }
+  }
+  return { category: '', condition: '' };
 }
 
 // ===== 云函数入口 =====
 exports.main = async (event, context) => {
-  const { fileID } = event;
-  if (!fileID) {
-    return { code: -1, error: '缺少 fileID 参数' };
+  const { fileID, title } = event;
+
+  const secretId = process.env.TENCENT_SECRET_ID || localConfig.TENCENT_SECRET_ID;
+  const secretKey = process.env.TENCENT_SECRET_KEY || localConfig.TENCENT_SECRET_KEY;
+
+  // 诊断：环境变量是否加载
+  if (!secretId || !secretKey) {
+    console.error('[classifyImage] MISSING ENV VARS: TENCENT_SECRET_ID=' + !!secretId + ' TENCENT_SECRET_KEY=' + !!secretKey);
   }
 
   try {
-    // 尝试使用 AI 图像识别
-    // 方式一：Tencent Cloud AI 的图像识别 API
-    // 需要开通服务并配置密钥，示例代码：
-    /*
-    const tencentcloud = require('tencentcloud-sdk-nodejs');
-    const ImageClient = tencentcloud.tiia.v20190529.Client;
-    const client = new ImageClient({
-      credential: {
-        secretId: process.env.TENCENT_SECRET_ID,
-        secretKey: process.env.TENCENT_SECRET_KEY,
-      },
-      region: 'ap-guangzhou',
-    });
 
-    const { Downloader } = require('wx-server-sdk');
-    const buffer = await Downloader.downloadFile({ fileID }).then(res => res.fileContent);
+    // 有密钥 → 使用真实 AI
+    if (secretId && secretKey) {
+      try {
+        const dlRes = await cloud.downloadFile({ fileID });
+        const buffer = dlRes.fileContent;
+        const imageBase64 = buffer.toString('base64');
 
-    const result = await client.DetectLabel({
-      ImageBase64: buffer.toString('base64'),
-    });
+        const result = await callTIIA(imageBase64, secretId, secretKey);
+        const labels = result.Labels || [];
+        const { category, confidence } = mapLabelsToCategory(labels);
+        const labelWords = labels.map(l => (l.Name || '').toLowerCase());
+        // 取置信度最高的标签名作为建议标题
+        const bestLabel = labels.length > 0 ? labels.reduce((a, b) => (a.Confidence || 0) > (b.Confidence || 0) ? a : b).Name || '' : '';
+        const condition = guessCondition(labelWords) || '几乎全新';
+        const desc = generateDescription(category, condition, title || bestLabel);
 
-    const labels = result.Labels || [];
-    const topLabel = labels[0] || {};
-    // 映射 AI 标签到我们的分类体系
-    ...
-    */
+        return {
+          code: 0,
+          category,
+          confidence: confidence + '%',
+          condition,
+          description: desc,
+          suggestedTitle: bestLabel,
+          note: '已使用腾讯云 AI 图像识别'
+        };
+      } catch (aiErr) {
+        console.error('[classifyImage] AI call failed:', aiErr.message);
+        // AI 失败时尝试用标题匹配 + 文件名补充
+        const titleResult = classifyByTitle(title);
+        if (titleResult.category) {
+          const desc = generateDescription(titleResult.category, titleResult.condition, title);
+          return {
+            code: 0,
+            category: titleResult.category,
+            confidence: '70%',
+            condition: titleResult.condition,
+            description: desc,
+            note: 'AI 识别暂不可用（' + aiErr.message + '），已根据标题关键词匹配'
+          };
+        }
+        throw aiErr; // 标题也无信息，继续降级
+      }
+    }
 
-    // 方式二：使用云开发数据库的 AI 能力
-    // const result = await cloud.openapi.ai.detectObject({ ... });
+    // 无密钥 / AI 失败且标题无信息 → 完整降级
+    // 先试标题，再试 fileID 文件名，最后给默认值
+    const titleResult = classifyByTitle(title);
+    if (titleResult.category) {
+      const desc = generateDescription(titleResult.category, titleResult.condition, title);
+      return {
+        code: 0,
+        category: titleResult.category,
+        confidence: '70%',
+        condition: titleResult.condition,
+        description: desc,
+        note: '当前为关键词匹配模式，配置 TENCENT_SECRET_ID / TENCENT_SECRET_KEY 启用真实 AI'
+      };
+    }
 
-    // --- 以下为降级方案：基于文件名的关键词匹配 ---
-    const keywords = extractKeywords(fileID);
-    const result = classifyByKeywords(keywords);
+    const fileNameKeywords = extractKeywordsFromFileID(fileID);
+    if (fileNameKeywords.length > 0) {
+      const result = classifyByKeywords(fileNameKeywords);
+      const condition = guessCondition(fileNameKeywords);
+      const desc = generateDescription(result.category, condition, title);
+      return {
+        code: 0,
+        category: result.category,
+        confidence: result.confidence,
+        condition,
+        description: desc,
+        note: '根据文件名关键词匹配'
+      };
+    }
 
-    return {
-      code: 0,
-      category: result.name,
-      confidence: result.confidence,
-      desc: result.desc,
-      note: '当前为关键词匹配模式，配置腾讯云 AI 后可获得更精准的识别结果'
-    };
-
-  } catch (err) {
-    // 完全降级：返回默认结果
+    // 完全无信息 → 兜底给"其他"
+    const envStatus = 'SECRET_ID=' + (secretId ? '✓' : '✗') + ' SECRET_KEY=' + (secretKey ? '✓' : '✗');
     return {
       code: 0,
       category: '其他',
-      confidence: '60%',
-      desc: '如果分类不准确，请手动修改。',
-      note: '识别服务暂不可用，已使用默认分类'
+      confidence: '40%',
+      condition: '',
+      description: '',
+      note: '环境变量: ' + envStatus + '。未识别到具体类别，请填写标题后重试'
+    };
+
+  } catch (err) {
+    console.error('[classifyImage] fatal error:', err.message);
+    return {
+      code: 0,
+      category: '其他',
+      confidence: '40%',
+      condition: '',
+      description: '',
+      note: '识别失败: ' + err.message
     };
   }
 };

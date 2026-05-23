@@ -37,17 +37,45 @@ Page({
     });
   },
 
-  // ===== Step 1: 微信授权获取用户信息 =====
-  onGetUserInfo(e) {
-    if (!e.detail.userInfo) {
-      wx.showToast({ title: '需要授权才能使用', icon: 'none' });
+  // ===== Step 1: 获取用户信息 =====
+  onGetUserInfo() {
+    if (!this.data.agreed) {
+      wx.showToast({ title: '请先同意用户协议', icon: 'none' });
       return;
     }
+    this.setData({ authing: true });
+
+    // 优先用 wx.getUserProfile（新版 WeChat API）
+    if (wx.getUserProfile) {
+      wx.getUserProfile({
+        desc: '用于展示您的昵称和头像',
+        success: (res) => {
+          const rawName = (res.userInfo.nickName || '').trim();
+          const name = (!rawName || rawName === '微信用户') ? '邻居' : rawName;
+          this.setData({
+            nickName: name,
+            avatarUrl: res.userInfo.avatarUrl || '',
+            authing: false
+          });
+          setTimeout(() => this.setData({ showCommunity: true }), 300);
+        },
+        fail: () => {
+          this.setData({ authing: false });
+          this.showManualInput();
+        }
+      });
+    } else {
+      this.showManualInput();
+    }
+  },
+
+  // 手动输入昵称（备用）
+  showManualInput() {
     this.setData({
-      nickName: e.detail.userInfo.nickName,
-      avatarUrl: e.detail.userInfo.avatarUrl
+      nickName: '邻居',
+      avatarUrl: '',
+      authing: false
     });
-    // 授权成功，弹出小区选择
     setTimeout(() => this.setData({ showCommunity: true }), 300);
   },
 
@@ -123,14 +151,22 @@ Page({
   },
 
   // 确认小区，完成登录
-  confirmCommunity() {
+  async confirmCommunity() {
     const community = this.data.community.trim();
     if (!community) {
       wx.showToast({ title: '请选择或输入小区名称', icon: 'none' });
       return;
     }
+    if (!this.data.nickName) {
+      wx.showToast({ title: '请先微信授权', icon: 'none' });
+      return;
+    }
 
-    app.wechatLogin(this.data.nickName, community, this.data.avatarUrl);
-    wx.redirectTo({ url: '/pages/index/index' });
+    try {
+      await app.wechatLogin('', this.data.nickName, community, this.data.avatarUrl);
+      wx.redirectTo({ url: '/pages/index/index' });
+    } catch (e) {
+      wx.showToast({ title: '登录失败: ' + (e.message || e), icon: 'none' });
+    }
   }
 });

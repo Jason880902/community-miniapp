@@ -1,5 +1,4 @@
 const DB = require('./utils/data');
-const util = require('./utils/util');
 
 App({
   globalData: {
@@ -8,21 +7,26 @@ App({
     isLogin: false
   },
 
-  onLaunch() {
-    const userInfo = DB.getCurrentUser();
+  async onLaunch() {
+    wx.cloud.init({
+      env: 'cloud1-d6ghwnr2odbc94c82',
+      traceUser: true
+    });
     const loggedIn = wx.getStorageSync('neighbor_logged_in');
-    if (userInfo && loggedIn) {
-      this.globalData.userInfo = userInfo;
-      this.globalData.currentCommunity = userInfo.community;
+    const cached = wx.getStorageSync('neighbor_user_cache');
+    if (loggedIn && cached) {
+      this.globalData.userInfo = cached;
+      this.globalData.currentCommunity = cached.community;
       this.globalData.isLogin = true;
     }
   },
 
-  // 微信登录：nickName 来自微信授权，community 来自用户选择
-  wechatLogin(nickName, community, avatarUrl) {
-    const user = DB.getOrCreateUser(nickName, community, avatarUrl);
-    DB.setCurrentUser(user.id);
+  async wechatLogin(userId, nickName, community, avatarUrl) {
+    // 从云端创建/获取用户
+    const user = await DB.getOrCreateUser(userId, nickName, community, avatarUrl);
+    // 缓存到本地
     wx.setStorageSync('neighbor_logged_in', true);
+    wx.setStorageSync('neighbor_user_cache', user);
 
     this.globalData.userInfo = user;
     this.globalData.currentCommunity = community;
@@ -33,6 +37,7 @@ App({
 
   logout() {
     wx.removeStorageSync('neighbor_logged_in');
+    wx.removeStorageSync('neighbor_user_cache');
     this.globalData.userInfo = null;
     this.globalData.currentCommunity = '';
     this.globalData.isLogin = false;

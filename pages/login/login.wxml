@@ -23,7 +23,7 @@
     </view>
 
     <!-- 授权按钮 -->
-    <button wx:if="{{!nickName && !authing}}" class="auth-btn" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo" disabled="{{!agreed}}">
+    <button wx:if="{{!nickName && !authing}}" class="auth-btn" bindtap="onGetUserInfo" disabled="{{!agreed}}">
       进入邻里
     </button>
     <button wx:elif="{{authing && !nickName}}" class="auth-btn" disabled>授权中…</button>

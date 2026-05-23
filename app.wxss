@@ -18,12 +18,19 @@ page {
   --warning: #F59E0B;
   --danger: #EF4444;
 
+  /* 暖色点缀 — 社区温度感 */
+  --accent: #F97316;
+  --accent-light: #FFEDD5;
+  --accent-bg: #FFF7ED;
+
   /* 中性色 */
   --text: #1F2937;
   --text-secondary: #6B7280;
   --text-light: #9CA3AF;
   --border: #EDEDED;
+  --border-light: #F3F4F6;
   --bg: #F7F8FA;
+  --bg-subtle: #FAFBFC;
   --card: #FFFFFF;
 
   /* 间距系统 */
@@ -37,11 +44,19 @@ page {
   --space-16: 64px;
 
   /* 圆角系统 */
-  --radius-tag: 4px;
-  --radius-btn: 8px;
-  --radius-card: 12px;
+  --radius-tag: 6px;
+  --radius-btn: 10px;
+  --radius-card: 16px;
   --radius-modal: 20px;
   --radius-pill: 999px;
+
+  /* 阴影系统 — 对齐 Flutter Pixso 设计 */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.02);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.04);
+  --shadow-xl: 0 12px 32px rgba(0,0,0,0.08), 0 6px 14px rgba(0,0,0,0.04);
+  --shadow-btn: 0 4px 12px rgba(26,110,255,0.27);
+  --shadow-accent: 0 4px 16px rgba(26,110,255,0.2);
 }
 
 /* ===== 通用组件 ===== */
@@ -65,20 +80,34 @@ page {
 
 .status-badge {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--radius-tag);
-  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 .status-badge.available { background: var(--success-bg); color: var(--success); }
-.status-badge.claimed { background: #FEF3C7; color: var(--warning); }
+.status-badge.claimed { background: #FEF3C7; color: #D97706; }
+.status-badge.owner { background: #EFF6FF; color: #1A6EFF; }
+.status-badge.requested { background: #FEFCE8; color: #CA8A04; }
+.status-badge.inactive { background: #F3F4F6; color: #9CA3AF; }
 
 .item-tag {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--radius-tag);
+  padding: 4px 10px;
+  border-radius: var(--radius-tag, 6px);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
 }
 .item-tag.category { background: var(--primary-bg); color: var(--primary); }
-.item-tag.condition { background: var(--secondary-light); color: var(--secondary); }
+.item-tag.condition { background: #ECFDF5; color: var(--success, #10B981); }
+.item-tag.accent { background: #FFF7ED; color: var(--accent, #F97316); }
+.item-tag.amber { background: #FEF3C7; color: #D97706; }
+.item-tag.red { background: #FEF2F2; color: var(--danger, #EF4444); }
+.item-tag.gray { background: #F3F4F6; color: #6B7280; }
 
 .empty-state {
   display: flex;
@@ -87,5 +116,186 @@ page {
   padding: 60px 20px;
   color: var(--text-light);
 }
-.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-.empty-state text { font-size: 14px; }
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+.empty-state text {
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+.empty-state .sub {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+/* ===== 骨架屏加载动画 ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ===== 触摸目标最小尺寸 ===== */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== 通用导航栏（Flutter 48h 设计） ===== */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  height: 48px;
+  box-sizing: border-box;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--border, #EDEDED);
+}
+.nav-back {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F7F8FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nav-back:active { opacity: 0.7; }
+.nav-back-icon { width: 18px; height: 18px; display: block; }
+.nav-title { font-size: 17px; font-weight: 600; color: #1F2937; }
+.nav-placeholder { width: 60px; }
+
+/* ===== Tab Bar（Flutter pill 设计） ===== */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  background: #FFFFFF;
+  border-top: 1px solid var(--border, #EDEDED);
+  z-index: 100;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  box-sizing: content-box;
+}
+.tab-inner {
+  width: 100%;
+  max-width: 430px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4px;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 1px solid var(--border, #EDEDED);
+  border-radius: 36px;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  position: relative;
+  height: 54px;
+  border-radius: 26px;
+  gap: 3px;
+  transition: all 0.2s;
+  max-width: 72px;
+  min-width: 54px;
+}
+.tab-item.active {
+  background: var(--primary-bg, #EFF6FF);
+  color: var(--primary, #1A6EFF);
+}
+.tab-post {
+  background: var(--primary, #1A6EFF);
+  color: white;
+}
+.tab-icon { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+.tab-label { font-size: 10px; font-weight: 500; line-height: 1.2; }
+.tab-item.active .tab-label { font-weight: 700; color: #1A6EFF; }
+.tab-post .tab-label { font-weight: 700; color: white; }
+.tab-badge {
+  position: absolute;
+  top: -2px;
+  right: 50%;
+  margin-right: -18px;
+  background: #EF4444;
+  color: white;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  min-width: 14px;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(239,68,68,0.3);
+}
+
+/* ===== 通用文字工具类 ===== */
+.text-primary { color: var(--primary, #1A6EFF); }
+.text-secondary { color: var(--text-secondary, #6B7280); }
+.text-light { color: var(--text-light, #9CA3AF); }
+.text-danger { color: var(--danger, #EF4444); }
+.text-success { color: var(--success, #10B981); }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fs-12 { font-size: 12px; }
+.fs-13 { font-size: 13px; }
+.fs-14 { font-size: 14px; }
+.fs-15 { font-size: 15px; }
+
+/* ===== 分割线 ===== */
+.divider {
+  height: 1px;
+  background: var(--border, #EDEDED);
+  margin: 0;
+}
+
+/* ===== 卡片容器 ===== */
+.card {
+  background: var(--card, #FFFFFF);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-sm);
+}
+.card-padded {
+  background: var(--card, #FFFFFF);
+  border-radius: var(--radius-card, 16px);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== 空状态（增强版） ===== */
+.empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 32px;
+  gap: 12px;
+}
+.empty-emoji { font-size: 44px; opacity: 0.6; }
+.empty-title { font-size: 15px; font-weight: 600; color: #6B7280; }
+.empty-sub { font-size: 13px; color: #9CA3AF; text-align: center; line-height: 1.6; }
+
+/* SVG 图标已迁移至 PNG images（/images/xxx.png） */
