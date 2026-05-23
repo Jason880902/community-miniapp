@@ -1,0 +1,9 @@
+{
+  "name": "adminapi",
+  "version": "1.0.0",
+  "description": "管理后台 HTTP API — 通过 HTTP 触发访问",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
