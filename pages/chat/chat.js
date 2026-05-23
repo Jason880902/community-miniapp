@@ -17,6 +17,7 @@ Page({
     recording: false,
     recordDuration: 0,
     playingId: '',
+    isOwner: false,
   },
 
   async onLoad(options) {
@@ -44,6 +45,12 @@ Page({
       itemId,
       isSystem
     });
+
+    // 判断当前用户是否是物品主人（用于显示申请卡片）
+    if (itemId) {
+      const item = await DB.getItemById(itemId);
+      if (item) this.setData({ isOwner: item.userId === user.id });
+    }
 
     await DB.markRead(user.id, partnerId);
     await this.loadMessages();
@@ -207,6 +214,42 @@ Page({
   previewImage(e) {
     const url = e.currentTarget.dataset.url;
     if (url) wx.previewImage({ urls: [url] });
+  },
+
+  // ===== 审批申请（聊天内请求卡片） =====
+  async approveRequest(e) {
+    const reqId = e.currentTarget.dataset.reqid;
+    if (!reqId) return;
+    wx.showModal({
+      title: '确认批准',
+      content: '确定将物品分享给这个邻居吗？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        await DB.updateRequestStatus(reqId, 'approved');
+        await DB.updateItemStatus(this.data.itemId, 'claimed');
+        await DB.sendMessage('system', this.data.partnerId, this.data.itemId,
+          '你的申请已通过，请联系分享人领取物品');
+        wx.showToast({ title: '已批准' });
+        await this.loadMessages();
+      }
+    });
+  },
+
+  async rejectRequest(e) {
+    const reqId = e.currentTarget.dataset.reqid;
+    if (!reqId) return;
+    wx.showModal({
+      title: '确认拒绝',
+      content: '确定拒绝这个申请吗？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        await DB.updateRequestStatus(reqId, 'rejected');
+        await DB.sendMessage('system', this.data.partnerId, this.data.itemId,
+          '抱歉，物品已分享给其他邻居');
+        wx.showToast({ title: '已拒绝' });
+        await this.loadMessages();
+      }
+    });
   },
 
   // ===== 通话（发送通话邀请消息） =====

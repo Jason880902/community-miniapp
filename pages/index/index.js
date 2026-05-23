@@ -14,6 +14,7 @@ Page({
     searchQuery: '',
     unreadCount: 0,
     firstLoad: true,
+    loading: true,
     indicatorLeft: 0,
     indicatorWidth: 0,
     columnMode: 'single'
@@ -35,6 +36,7 @@ Page({
   },
 
   async loadItems() {
+    this.setData({ loading: true });
     const user = app.globalData.userInfo;
     const items = await DB.getAvailableItems(this.data.selectedCat, user?.community);
     const query = this.data.searchQuery.trim().toLowerCase();
@@ -53,7 +55,8 @@ Page({
         catColor: util.getCategoryColor(i.category),
         ownerName: userMap[i.userId] ? userMap[i.userId].name : '邻居',
         time: util.formatTime(i.createTime)
-      }))
+      })),
+      loading: false
     });
   },
 

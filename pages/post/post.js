@@ -424,6 +424,7 @@ Page({
         newIds.push(res.fileID);
       } catch (e) {
         console.error('图片上传失败:', e);
+        wx.showToast({ title: '图片上传失败', icon: 'none' });
       }
     }
     const allImages = [...existingImages, ...newIds];

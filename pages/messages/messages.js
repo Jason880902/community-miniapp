@@ -37,7 +37,8 @@ Page({
 
   openChat(e) {
     const userId = e.currentTarget.dataset.userid;
-    wx.navigateTo({ url: '/pages/chat/chat?userId=' + userId });
+    const itemId = e.currentTarget.dataset.itemid || '';
+    wx.navigateTo({ url: `/pages/chat/chat?userId=${userId}&itemId=${itemId}` });
   },
 
   goHome() {

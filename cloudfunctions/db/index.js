@@ -247,6 +247,8 @@ const HANDLERS = {
       if (extra.voiceUrl) msg.voiceUrl = extra.voiceUrl;
       if (extra.imageUrl) msg.imageUrl = extra.imageUrl;
       if (extra.callType) msg.callType = extra.callType;
+      if (extra.reqId) msg.reqId = extra.reqId;
+      if (extra.userName) msg.userName = extra.userName;
     }
     const res = await db.collection('messages').add({ data: msg });
     return { ...msg, _id: res._id };
@@ -293,6 +295,7 @@ const HANDLERS = {
         lastMsg: preview,
         lastTime: last ? last.createTime : 0,
         unread,
+        itemId: last ? last.itemId || '' : '',
         itemTitle: item ? item.title : ''
       };
     }).sort((a, b) => b.lastTime - a.lastTime);

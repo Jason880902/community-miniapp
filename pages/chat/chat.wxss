@@ -104,6 +104,49 @@
   margin-top: 2px;
 }
 
+/* ===== 语音消息 ===== */
+.msg.voice {
+  min-width: 90px;
+  cursor: pointer;
+}
+.voice-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.voice-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.voice-duration {
+  font-size: 15px;
+  font-weight: 600;
+}
+.msg.sent .voice-duration { color: white; }
+.msg.received .voice-duration { color: #1F2937; }
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+.voice-dot {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: voicePulse 0.8s ease-in-out infinite alternate;
+}
+.msg.sent .voice-dot { background: rgba(255,255,255,0.8); }
+.msg.received .voice-dot { background: #1A6EFF; }
+.voice-dot:nth-child(2) { animation-delay: 0.27s; }
+.voice-dot:nth-child(3) { animation-delay: 0.54s; }
+@keyframes voicePulse {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
 /* ===== 输入区（对齐 Flutter） ===== */
 .input-area {
   display: flex;

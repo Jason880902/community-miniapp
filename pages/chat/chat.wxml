@@ -31,6 +31,19 @@
         </view>
       </view>
 
+      <!-- 语音消息 -->
+      <view wx:elif="{{item.type === 'voice'}}" class="msg-row {{item.isSent ? 'sent' : 'received'}}">
+        <view wx:if="{{!item.isSent}}" class="msg-avatar">{{partnerInitial}}</view>
+        <view class="msg voice {{item.isSent ? 'sent' : 'received'}}" bindtap="playVoice" data-id="{{item.id}}">
+          <view class="voice-inner">
+            <text class="voice-icon">{{playingId === item.id ? '🔊' : '🔈'}}</text>
+            <text class="voice-duration">{{item.voiceDuration || 0}}"</text>
+            <view wx:if="{{playingId === item.id}}" class="voice-wave"><text class="voice-dot"></text><text class="voice-dot"></text><text class="voice-dot"></text></view>
+          </view>
+          <text class="msg-time">{{item.time}}</text>
+        </view>
+      </view>
+
       <!-- 申请卡片（仅物主可见，居中展示） -->
       <view wx:elif="{{item.type === 'request' && isOwner}}" class="msg request-card-wrap">
         <view class="request-card">

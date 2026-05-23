@@ -13,7 +13,9 @@ Page({
     userCommunity: '',
     stats: { total: 0, shared: 0, active: 0 },
     showItems: false,
-    myItems: []
+    myItems: [],
+    showRequests: false,
+    myRequests: []
   },
 
   async onShow() {
@@ -54,6 +56,27 @@ Page({
     }
     await this.fetchMyItems();
     this.setData({ showItems: true });
+  },
+
+  async goMyRequests() {
+    const user = app.globalData.userInfo;
+    if (!user) return;
+    if (this.data.showRequests) {
+      this.setData({ showRequests: false });
+      return;
+    }
+    const requests = await DB.getUserRequests(user.id);
+    const enriched = await Promise.all(requests.map(async (req) => {
+      const item = await DB.getItemById(req.itemId);
+      return {
+        ...req,
+        time: util.formatTime(req.createTime),
+        itemImage: item && item.images && item.images.length > 0 ? item.images[item.coverIndex || 0] : '',
+        itemTitle: item ? item.title : '',
+        itemCategory: item ? item.category : ''
+      };
+    }));
+    this.setData({ myRequests: enriched, showRequests: true });
   },
 
   markItemClaimed(e) {

@@ -16,7 +16,7 @@
     </view>
 
     <view wx:if="{{conversations.length > 0}}" class="list">
-      <view class="conversation-item" wx:for="{{conversations}}" wx:key="userId" data-userid="{{item.userId}}" bindtap="openChat">
+      <view class="conversation-item" wx:for="{{conversations}}" wx:key="userId" data-userid="{{item.userId}}" data-itemid="{{item.itemId}}" bindtap="openChat">
         <view class="conv-avatar">{{item.userName.charAt(0)}}</view>
         <view class="conv-info">
           <view class="conv-top">

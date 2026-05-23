@@ -75,8 +75,11 @@ Page({
   async requestItem() {
     const item = this.data.item;
     const user = app.globalData.userInfo;
-    await DB.addRequest(item.id, user.id);
-    await DB.sendMessage(user.id, item.userId, item.id, `你好，我想领取「${item.title}」，请问还在吗？`);
+    const req = await DB.addRequest(item.id, user.id);
+    await DB.sendMessage(user.id, item.userId, item.id, '领取申请', 'request', {
+      reqId: req.id,
+      userName: user.name
+    });
     wx.showToast({ title: '已发送申请' });
     await this.loadItem(item.id);
   },
