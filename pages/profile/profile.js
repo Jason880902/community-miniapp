@@ -26,12 +26,14 @@ Page({
       return;
     }
     const stats = await DB.getItemStats(user.id);
-    // 获取管理员状态
-    let isAdmin = false;
+    // 管理员状态：优先用缓存（登录时已设置），再云端刷新
+    let isAdmin = !!(user.isAdmin);
     try {
       const freshUser = await DB.getCurrentUser(user.id);
-      isAdmin = !!(freshUser && freshUser.isAdmin);
-    } catch (e) { /* 非管理员静默处理 */ }
+      if (freshUser) isAdmin = !!freshUser.isAdmin;
+    } catch (e) {
+      console.warn('获取管理员状态失败:', e);
+    }
     this.setData({
       userName: user.name,
       userInitial: user.name.charAt(0),
