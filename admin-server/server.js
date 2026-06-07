@@ -90,7 +90,7 @@ app.get('/api/items', auth, async (req, res) => {
     const { data: requests } = await db.collection('requests').get();
     const userMap = {}; users.forEach(u => { userMap[u.userId] = u; });
     const reqCount = {}; requests.forEach(r => { reqCount[r.itemId] = (reqCount[r.itemId] || 0) + 1; });
-    res.json({ code: 0, data: items.map(i => ({ ...i, ownerName: userMap[i.userId] ? userMap[i.userId].name : '未知', requestCount: reqCount[i.itemId] || 0 })) });
+    res.json({ code: 0, data: items.map(i => ({ ...i, ownerName: userMap[i.userId] ? userMap[i.userId].name : '未知', ownerWechatId: userMap[i.userId] ? (userMap[i.userId].wechatId || '') : '', ownerPhone: userMap[i.userId] ? (userMap[i.userId].phone || '') : '', requestCount: reqCount[i.itemId] || 0 })) });
   } catch (e) { res.json({ code: -1, msg: e.message }); }
 });
 

@@ -23,4 +23,12 @@ function getCategoryColor(category) {
   return icons.CATEGORY_COLORS[category] || icons.CATEGORY_COLORS['其他'];
 }
 
-module.exports = { formatTime, getCategoryColor };
+let _safeArea = null;
+function getSafeArea() {
+  if (_safeArea) return _safeArea;
+  const info = wx.getSystemInfoSync();
+  _safeArea = { statusBarHeight: info.statusBarHeight || 20 };
+  return _safeArea;
+}
+
+module.exports = { formatTime, getCategoryColor, getSafeArea };

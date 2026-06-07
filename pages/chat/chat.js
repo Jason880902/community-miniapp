@@ -18,6 +18,7 @@ Page({
     recordDuration: 0,
     playingId: '',
     isOwner: false,
+    statusBarHeight: util.getSafeArea().statusBarHeight,
   },
 
   async onLoad(options) {

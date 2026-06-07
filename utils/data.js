@@ -20,8 +20,8 @@ async function setCurrentUser(userId) {
   return userId;
 }
 
-async function getOrCreateUser(userId, name, community, avatarUrl) {
-  return call('getOrCreateUser', { userId, name, community, avatarUrl });
+async function getOrCreateUser(userId, name, community, avatarUrl, wechatId, phone) {
+  return call('getOrCreateUser', { userId, name, community, avatarUrl, wechatId, phone });
 }
 
 async function getUserById(id) {
@@ -115,6 +115,17 @@ async function getUserRequests(userId) {
   return call('getUserRequests', { userId });
 }
 
+// ===== 内容审核 =====
+async function updateUserProfile(userId, wechatId, phone) {
+  return call('updateUserProfile', { userId, wechatId, phone });
+}
+
+// ===== 内容审核 =====
+async function auditImage(fileID) {
+  const res = await wx.cloud.callFunction({ name: 'contentAudit', data: { fileID } });
+  return res.result;
+}
+
 // ===== 管理员 =====
 async function getAdminStats() {
   return call('getAdminStats');
@@ -138,11 +149,12 @@ async function adminDeleteItem(itemId) {
 
 module.exports = {
   CATEGORIES, CONDITIONS,
-  getCurrentUser, setCurrentUser, getOrCreateUser,
+  getCurrentUser, setCurrentUser, getOrCreateUser, updateUserProfile,
   getAllItems, getAvailableItems, getItemById,
   getUserById, updateUserName, getAllUsers, getItemsByUser, addItem, updateItem, updateItemStatus, deleteItem, getItemStats,
   sendMessage, getConversations, getMessages, markRead, countUnread,
   addRequest, getPendingRequestsForItem, updateRequestStatus, getRequestsForItem, getUserRequests,
+  auditImage,
   getAdminStats, adminGetAllUsers, adminGetAllItems, adminGetAllRequests, adminDeleteItem,
 
   // 兼容旧版同步调用: 已变更为 async

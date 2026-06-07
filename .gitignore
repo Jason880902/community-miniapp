@@ -12,3 +12,32 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+package-lock.json
+
+# 环境变量 / 密钥
+.env
+*.env
+
+# 临时部署脚本生成的文件
+admin-server/add-key.js
+admin-server/fix-creds.js
+admin-server/remote-deploy.js
+admin-server/server-deploy.js
+admin-server/update-creds.js
+admin-server/app64.txt
+admin-server/part_*
+
+# 测试材料
+测试材料/
+
+# 小程序本地配置（含个人设置）
+project.private.config.json
+
+# miniprogram_npm
+miniprogram_npm/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo

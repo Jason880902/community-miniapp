@@ -5,7 +5,7 @@ const app = getApp();
 const util = require('../../utils/util');
 
 Page({
-  data: {
+    data: {
     userName: '',
     icons: icons,
     userInitial: '',
@@ -16,11 +16,15 @@ Page({
     myItems: [],
     showRequests: false,
     myRequests: [],
-    isAdmin: false
+    isAdmin: false,
+    unreadCount: 0,
+    wechatId: '',
+    phone: '',
+    statusBarHeight: util.getSafeArea().statusBarHeight
   },
 
   async onShow() {
-    const user = app.globalData.userInfo;
+    let user = app.globalData.userInfo;
     if (!user) {
       wx.redirectTo({ url: '/pages/login/login' });
       return;
@@ -28,11 +32,18 @@ Page({
     const stats = await DB.getItemStats(user.id);
     // 管理员状态：优先用缓存（登录时已设置），再云端刷新
     let isAdmin = !!(user.isAdmin);
+    let freshUser = null;
     try {
-      const freshUser = await DB.getCurrentUser(user.id);
+      freshUser = await DB.getCurrentUser(user.id);
       if (freshUser) isAdmin = !!freshUser.isAdmin;
     } catch (e) {
       console.warn('获取管理员状态失败:', e);
+    }
+    // 用云端最新数据覆盖缓存
+    if (freshUser) {
+      app.globalData.userInfo = freshUser;
+      wx.setStorageSync('neighbor_user_cache', freshUser);
+      user = freshUser;
     }
     this.setData({
       userName: user.name,
@@ -40,10 +51,13 @@ Page({
       userAvatar: user.avatarUrl || '',
       userCommunity: user.community,
       stats,
-      isAdmin
+      isAdmin,
+      wechatId: user.wechatId || '',
+      phone: user.phone || ''
     });
     // 返回时自动刷新物品列表数据
     await this.fetchMyItems();
+    this.updateUnread();
   },
 
   async fetchMyItems() {
@@ -194,6 +208,42 @@ Page({
     wx.navigateTo({ url: '/pages/admin/admin' });
   },
 
+  editContact() {
+    wx.showModal({
+      title: '编辑微信号',
+      editable: true,
+      placeholderText: '请输入微信号',
+      content: this.data.wechatId || '',
+      confirmText: '下一步',
+      success: async (res) => {
+        if (!res.confirm) return;
+        const newWechat = res.content.trim();
+        wx.showModal({
+          title: '编辑联系电话',
+          editable: true,
+          placeholderText: '请输入联系电话',
+          content: this.data.phone || '',
+          confirmText: '保存',
+          success: async (res2) => {
+            if (!res2.confirm) return;
+            const newPhone = res2.content.trim();
+            try {
+              const user = app.globalData.userInfo;
+              await DB.updateUserProfile(user.id, newWechat, newPhone);
+              this.setData({ wechatId: newWechat, phone: newPhone });
+              user.wechatId = newWechat;
+              user.phone = newPhone;
+              wx.setStorageSync('neighbor_user_cache', user);
+              wx.showToast({ title: '已更新', icon: 'success' });
+            } catch (e) {
+              wx.showToast({ title: '更新失败', icon: 'none' });
+            }
+          }
+        });
+      }
+    });
+  },
+
   logout() {
     wx.showModal({
       title: '提示',
@@ -205,5 +255,13 @@ Page({
         }
       }
     });
+  },
+
+  async updateUnread() {
+    const user = app.globalData.userInfo;
+    if (user) {
+      const count = await DB.countUnread(user.id);
+      this.setData({ unreadCount: count });
+    }
   }
 });

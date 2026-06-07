@@ -180,8 +180,8 @@ function renderUsers() {
   const h = '<div class="tabs">' + tabs() + '</div><div class="search-bar"><input placeholder="搜索昵称…" oninput="searchUser=this.value;renderUsers()" value="' + searchUser + '"></div>';
   if (list.length === 0) { app.innerHTML = h + '<div class="empty">暂无数据</div>'; return; }
   app.innerHTML = h +
-    '<table><tr><th>昵称</th><th>小区</th><th>发布物品</th><th>申请次数</th></tr>' +
-    list.map(u => '<tr><td><strong>' + (u.name||'') + '</strong></td><td>' + (u.community||'-') + '</td><td>' + (u.itemCount||0) + '</td><td>' + (u.requestCount||0) + '</td></tr>').join('') +
+    '<table><tr><th>昵称</th><th>小区</th><th>微信号</th><th>联系电话</th><th>发布物品</th><th>申请次数</th></tr>' +
+    list.map(u => '<tr><td><strong>' + (u.name||'') + '</strong></td><td>' + (u.community||'-') + '</td><td>' + (u.wechatId||'-') + '</td><td>' + (u.phone||'-') + '</td><td>' + (u.itemCount||0) + '</td><td>' + (u.requestCount||0) + '</td></tr>').join('') +
     '</table>';
 }
 
@@ -204,8 +204,8 @@ function renderItems() {
   const h = '<div class="tabs">' + tabs() + '</div><div class="search-bar"><input placeholder="搜索标题…" oninput="searchItem=this.value;renderItems()" value="' + searchItem + '"></div>';
   if (list.length === 0) { app.innerHTML = h + '<div class="empty">暂无数据</div>'; return; }
   app.innerHTML = h +
-    '<table><tr><th>标题</th><th>分类</th><th>发布人</th><th>状态</th><th>申请数</th><th>操作</th></tr>' +
-    list.map(i => '<tr><td><strong>' + (i.title||'') + '</strong></td><td>' + (i.category||'') + '</td><td>' + (i.ownerName||'') + '</td><td>' + (STATUS_MAP[i.status]||i.status) + '</td><td>' + (i.requestCount||0) + '</td><td><button class="btn" onclick="delItem(\'' + i.itemId + '\')">删除</button></td></tr>').join('') +
+    '<table><tr><th>标题</th><th>分类</th><th>发布人</th><th>微信号</th><th>联系电话</th><th>状态</th><th>申请数</th><th>操作</th></tr>' +
+    list.map(i => '<tr><td><strong>' + (i.title||'') + '</strong></td><td>' + (i.category||'') + '</td><td>' + (i.ownerName||'') + '</td><td>' + (i.ownerWechatId||'-') + '</td><td>' + (i.ownerPhone||'-') + '</td><td>' + (STATUS_MAP[i.status]||i.status) + '</td><td>' + (i.requestCount||0) + '</td><td><button class="btn" onclick="delItem(\'' + i.itemId + '\')">删除</button></td></tr>').join('') +
     '</table>';
 }
 async function delItem(id) {

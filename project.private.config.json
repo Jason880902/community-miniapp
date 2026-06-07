@@ -1,9 +1,9 @@
 {
-  "libVersion": "3.15.2",
+  "libVersion": "3.16.0",
   "projectname": "community-miniapp",
   "condition": {},
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

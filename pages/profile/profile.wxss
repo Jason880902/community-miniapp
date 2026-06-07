@@ -15,22 +15,36 @@
   overflow-x: hidden;
 }
 
-.nav-bar {
+/* ===== 头部（与首页一致） ===== */
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  height: 48px;
-  box-sizing: border-box;
+  padding: 16px 20px 10px;
   background: white;
   border-bottom: 1px solid #EDEDED;
 }
-.nav-title { font-size: 17px; font-weight: 600; color: #1F2937; }
+.header-left { display: flex; flex-direction: column; }
+.header-title { font-size: 24px; font-weight: 700; color: #1A6EFF; letter-spacing: -0.5px; }
+.header-location { font-size: 12px; color: #6B7280; margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1A6EFF, #4F46E5);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-/* ===== 用户信息头部（Flutter 蓝色渐变风格） ===== */
+/* ===== 用户信息头部（蓝色渐变） ===== */
 .profile-header {
   background: linear-gradient(135deg, #1A6EFF 0%, #4F46E5 100%);
-  padding: 40px 20px 32px;
+  padding: 32px 20px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,6 +138,43 @@
 .stat-num.amber { color: var(--warning, #F59E0B); }
 .stat-label { font-size: 12px; color: #6B7280; display: block; }
 
+/* ===== 联系方式卡片 ===== */
+.contact-card {
+  background: white;
+  margin: 12px 0 12px;
+  padding: 14px 16px;
+}
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.contact-title { font-size: 14px; font-weight: 600; color: #1F2937; }
+.contact-edit { font-size: 13px; color: #1A6EFF; cursor: pointer; }
+.contact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #F3F4F6;
+}
+.contact-label { font-size: 13px; color: #6B7280; }
+.contact-value { font-size: 13px; color: #1F2937; font-weight: 500; }
+.contact-phone-btn {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: #1A6EFF;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+}
+.contact-phone-btn:active { opacity: 0.85; }
+.contact-phone-btn::after { border: none; }
+
 /* ===== 菜单列表 ===== */
 .menu-list {
   background: white;
@@ -160,6 +211,7 @@
 .menu-icon-gray { background: #F3F4F6; }
 .menu-text { flex: 1; font-size: 15px; color: #1F2937; font-weight: 500; }
 .menu-arrow { width: 18px; height: 18px; flex-shrink: 0; }
+.menu-badge { margin-left: auto; margin-right: 4px; min-width: 18px; height: 18px; line-height: 18px; border-radius: 9px; background: #ee0a24; color: #fff; font-size: 11px; text-align: center; padding: 0 5px; }
 /* ===== section 标题行 ===== */
 .section-header {
   display: flex;

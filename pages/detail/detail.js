@@ -16,7 +16,10 @@ Page({
     showMarkClaimed: false,
     pendingRequests: [],
     showRequestList: false,
-    swiperIndex: 0
+    swiperIndex: 0,
+    similarItems: [],
+    ownerStats: null,
+    statusBarHeight: util.getSafeArea().statusBarHeight
   },
 
   async onLoad(options) {
@@ -52,6 +55,8 @@ Page({
       ownerInitial: owner ? owner.name.charAt(0) : '?',
       ownerAvatar: owner ? (owner.avatarUrl || '') : '',
       ownerCommunity: owner ? owner.community : '',
+      ownerWechatId: owner ? (owner.wechatId || '') : '',
+      ownerPhone: owner ? (owner.phone || '') : '',
       showRequest: item.status === 'available' && !isOwner && !pendingRequest,
       showApplied: item.status === 'available' && !isOwner && !!pendingRequest,
       showContact: !isOwner && item.status === 'available',
@@ -64,6 +69,26 @@ Page({
       showRequestList: isOwner && pendingRequests.length > 0,
       swiperIndex: item.coverIndex || 0
     });
+    // 相似物品 + 分享人信誉
+    this.loadSimilarItems(item);
+    this.loadOwnerStats(item.userId);
+  },
+
+  async loadSimilarItems(item) {
+    try {
+      const allItems = await DB.getAvailableItems(item.category, item.community || '');
+      const similar = allItems
+        .filter(i => i.itemId !== item.itemId && i.status === 'available')
+        .slice(0, 6)
+        .map(i => ({
+          ...i,
+          catColor: util.getCategoryColor(i.category),
+          time: util.formatTime(i.createTime)
+        }));
+      this.setData({ similarItems: similar });
+    } catch (e) {
+      console.warn('[detail] loadSimilarItems failed:', e);
+    }
   },
 
   onSwiperChange(e) {
@@ -71,6 +96,20 @@ Page({
   },
 
   goBack() { wx.navigateBack(); },
+
+  openSimilarItem(e) {
+    const id = e.currentTarget.dataset.id;
+    if (id) wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
+  },
+
+  async loadOwnerStats(userId) {
+    try {
+      const stats = await DB.getItemStats(userId);
+      this.setData({ ownerStats: stats });
+    } catch (e) {
+      console.warn('[detail] loadOwnerStats failed:', e);
+    }
+  },
 
   async requestItem() {
     const item = this.data.item;

@@ -1,10 +1,16 @@
 <view class="page">
   <view class="page-inner">
-    <view class="nav-bar">
-      <text class="nav-title">我的</text>
+    <view class="header" style="padding-top: {{statusBarHeight + 16}}px">
+      <view class="header-left">
+        <text class="header-title">邻里</text>
+        <text class="header-location">{{userCommunity}}</text>
+      </view>
+      <view class="header-right">
+        <text class="header-avatar">{{userInitial}}</text>
+      </view>
     </view>
 
-    <!-- 个人资料头部（Flutter 风格蓝色渐变） -->
+    <!-- 个人资料头部 -->
     <view class="profile-header">
       <view class="profile-avatar-wrap">
         <image wx:if="{{userAvatar}}" class="profile-avatar-img" src="{{userAvatar}}" mode="aspectFill" />
@@ -30,6 +36,22 @@
       </view>
     </view>
 
+    <!-- 联系方式 -->
+    <view class="contact-card">
+      <view class="contact-header">
+        <text class="contact-title">联系方式</text>
+        <text class="contact-edit" bindtap="editContact">编辑</text>
+      </view>
+      <view class="contact-row">
+        <text class="contact-label">微信号</text>
+        <text class="contact-value">{{wechatId || '未填写'}}</text>
+      </view>
+      <view class="contact-row">
+        <text class="contact-label">联系电话</text>
+        <text class="contact-value">{{phone || '未填写'}}</text>
+      </view>
+    </view>
+
     <view class="menu-list">
       <view class="menu-item" bindtap="goMyItems">
         <view class="menu-icon-wrap menu-icon-blue">
@@ -50,6 +72,7 @@
           <image class="menu-icon-img" src="/images/messagecircle0.png" mode="aspectFit" />
         </view>
         <text class="menu-text">我的消息</text>
+        <view wx:if="{{unreadCount > 0}}" class="menu-badge">{{unreadCount}}</view>
         <image class="menu-arrow" src="/images/chevronright.png" mode="aspectFit" />
       </view>
       <view wx:if="{{isAdmin}}" class="menu-item" bindtap="goAdmin">
@@ -155,6 +178,7 @@
       <view class="tab-item" bindtap="goMyMessages">
         <image class="tab-icon" src="/images/messagecircle1.png" mode="aspectFit" />
         <text class="tab-label">消息</text>
+        <view wx:if="{{unreadCount > 0}}" class="tab-badge">{{unreadCount}}</view>
       </view>
       <view class="tab-item active">
         <image class="tab-icon" src="/images/user0.png" mode="aspectFit" />

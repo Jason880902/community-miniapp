@@ -1,0 +1,9 @@
+{
+  "name": "contentAudit",
+  "version": "1.0.0",
+  "description": "图片内容安全审核 — 调用腾讯云 IMS 检测色情/暴恐/政治/广告",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -1,7 +1,7 @@
 <view class="page">
   <view class="page-inner">
   <!-- 自定义导航 -->
-  <view class="nav-bar">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight + 16}}px">
     <view class="nav-back" bindtap="goBack">
       <image class="nav-back-icon" src="/images/arrowleft1.png" mode="aspectFit" />
     </view>
@@ -64,6 +64,22 @@
         <text class="owner-name">{{ownerName}}</text>
         <text class="owner-community">{{ownerCommunity}}</text>
       </view>
+      <view wx:if="{{ownerStats}}" class="owner-stats">
+        <text class="owner-stats-num">{{ownerStats.shared}}</text>
+        <text class="owner-stats-label">已分享</text>
+      </view>
+    </view>
+
+    <!-- 物主联系方式 -->
+    <view wx:if="{{ownerWechatId || ownerPhone}}" class="detail-section-contact">
+      <view wx:if="{{ownerWechatId}}" class="contact-row">
+        <text class="contact-label">微信号</text>
+        <text class="contact-value">{{ownerWechatId}}</text>
+      </view>
+      <view wx:if="{{ownerPhone}}" class="contact-row">
+        <text class="contact-label">联系电话</text>
+        <text class="contact-value">{{ownerPhone}}</text>
+      </view>
     </view>
 
     <view class="section-gap"></view>
@@ -94,6 +110,24 @@
           <button class="request-btn reject" bindtap="rejectRequest" data-reqid="{{item.id}}">拒绝</button>
         </view>
       </view>
+    </view>
+
+    <!-- 相似物品 -->
+    <view wx:if="{{similarItems.length > 0}}" class="section-gap"></view>
+    <view wx:if="{{similarItems.length > 0}}" class="similar-section">
+      <text class="similar-section-title">相似物品</text>
+      <scroll-view class="similar-scroll" scroll-x>
+        <view class="similar-item" wx:for="{{similarItems}}" wx:key="itemId" data-id="{{item.itemId}}" bindtap="openSimilarItem">
+          <image wx:if="{{item.images && item.images.length > 0}}" class="similar-image" src="{{item.images[item.coverIndex || 0]}}" mode="aspectFill" />
+          <view wx:else class="similar-image similar-placeholder" style="background:{{item.catColor.bg}}">
+            <text class="similar-cat" style="color:{{item.catColor.text}}">{{item.category}}</text>
+          </view>
+          <view class="similar-info">
+            <text class="similar-title">{{item.title}}</text>
+            <text class="similar-meta">{{item.ownerName}} · {{item.time}}</text>
+          </view>
+        </view>
+      </scroll-view>
     </view>
 
     <!-- 底部操作按钮（内联，保留 scroll 内的间距） -->

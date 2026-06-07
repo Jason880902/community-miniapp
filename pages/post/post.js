@@ -1,4 +1,5 @@
 const DB = require('../../utils/data');
+const util = require('../../utils/util');
 const icons = require('../../utils/icons');
 const app = getApp();
 
@@ -21,6 +22,7 @@ Page({
     editItemId: null,
     isEdit: false,
     coverIndex: 0,
+    statusBarHeight: util.getSafeArea().statusBarHeight,
     formData: {
       title: '',
       category: '',
@@ -184,7 +186,7 @@ Page({
       const filePath = this.data.images[0];
       // 缓存已上传的 fileID，避免重复上传
       if (this._uploadedFileID && this._uploadedPath === filePath) {
-        this._callClassifyFunction(this._uploadedFileID, resolve, reject);
+        this._auditThenClassify(this._uploadedFileID, resolve, reject);
         return;
       }
 
@@ -192,7 +194,7 @@ Page({
       if (typeof filePath === 'string' && filePath.startsWith('cloud://')) {
         this._uploadedFileID = filePath;
         this._uploadedPath = filePath;
-        this._callClassifyFunction(filePath, resolve, reject);
+        this._auditThenClassify(filePath, resolve, reject);
         return;
       }
 
@@ -202,10 +204,47 @@ Page({
         success: (uploadRes) => {
           this._uploadedFileID = uploadRes.fileID;
           this._uploadedPath = filePath;
-          this._callClassifyFunction(uploadRes.fileID, resolve, reject);
+          this._auditThenClassify(uploadRes.fileID, resolve, reject);
         },
         fail: reject
       });
+    });
+  },
+
+  // ===== 图片安全审核（先审后分类） =====
+  async _auditImage(fileID) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'contentAudit',
+        data: { fileID }
+      });
+      return res.result;
+    } catch (e) {
+      console.warn('[post] Audit call failed, allowing:', e);
+      return { approved: true, msg: '审核服务暂不可用' };
+    }
+  },
+
+  _auditThenClassify(fileID, resolve, reject) {
+    this._auditImage(fileID).then(auditRes => {
+      if (auditRes && auditRes.approved === false) {
+        // 未通过 → 删云文件 + 移除该图 + 提示
+        wx.cloud.deleteFile({ fileList: [fileID] });
+        this._uploadedFileID = null;
+        this._uploadedPath = null;
+        const images = this.data.images.slice(1);
+        let coverIndex = this.data.coverIndex;
+        if (coverIndex >= images.length) coverIndex = Math.max(0, images.length - 1);
+        this.setData({ images, coverIndex, aiResult: null, aiLoading: false });
+        wx.showToast({ title: auditRes.msg || '图片未通过安全审核', icon: 'none' });
+        reject('audit rejected');
+        return;
+      }
+      // 通过 → 继续分类
+      this._callClassifyFunction(fileID, resolve, reject);
+    }).catch(e => {
+      console.warn('[post] Audit error, allowing classify:', e);
+      this._callClassifyFunction(fileID, resolve, reject);
     });
   },
 
@@ -421,6 +460,17 @@ Page({
           cloudPath: 'items/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg',
           filePath: img,
         });
+        // 安全审核
+        const auditRes = await this._auditImage(res.fileID);
+        if (auditRes && auditRes.approved === false) {
+          wx.cloud.deleteFile({ fileList: [res.fileID] });
+          wx.hideLoading();
+          wx.showModal({
+            title: '审核不通过',
+            content: auditRes.msg || '图片内容未通过安全审核，请更换图片',
+          });
+          return;
+        }
         newIds.push(res.fileID);
       } catch (e) {
         console.error('图片上传失败:', e);

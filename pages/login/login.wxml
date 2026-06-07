@@ -5,13 +5,11 @@
       <text class="subtitle">社区旧物爱心分享</text>
     </view>
 
-    <!-- 已授权的用户信息 -->
     <view wx:if="{{nickName}}" class="user-preview">
       <image class="user-avatar" src="{{avatarUrl}}" mode="aspectFill" />
       <text class="user-name">{{nickName}}</text>
     </view>
 
-    <!-- 用户协议勾选 -->
     <view class="agreement" bindtap="toggleAgreement">
       <view class="agreement-row">
         <view class="checkbox {{agreed ? 'checked' : ''}}">
@@ -22,7 +20,6 @@
       <text class="agreement-link" catchtap="showAgreement">《用户协议》</text>
     </view>
 
-    <!-- 授权按钮 -->
     <button wx:if="{{!nickName && !authing}}" class="auth-btn" bindtap="onGetUserInfo" disabled="{{!agreed}}">
       进入邻里
     </button>
@@ -39,19 +36,11 @@
       <view class="sheet-action" bindtap="autoLocate">
         <text class="action-icon">📍</text>
         <view class="action-text">
-          <text class="action-label">定位当前小区</text>
-          <text class="action-desc">使用GPS定位你所在的小区</text>
+          <text class="action-label">从地图选择</text>
+          <text class="action-desc">在地图上选择你所在的小区</text>
         </view>
         <text wx:if="{{locating}}" class="action-loading">定位中…</text>
         <text wx:else class="action-arrow">{{icons.arrow}}</text>
-      </view>
-      <view class="sheet-action" bindtap="chooseFromMap">
-        <text class="action-icon">🗺️</text>
-        <view class="action-text">
-          <text class="action-label">从地图选择</text>
-          <text class="action-desc">在地图上标记你的小区位置</text>
-        </view>
-        <text class="action-arrow">{{icons.arrow}}</text>
       </view>
     </view>
 
@@ -65,6 +54,11 @@
 
     <view wx:if="{{suggestions.length > 0}}" class="sheet-suggest">
       <view class="suggest-item" wx:for="{{suggestions}}" wx:key="*this" bindtap="selectSuggest" data-name="{{item}}">{{item}}</view>
+    </view>
+
+    <view class="contact-fields">
+      <input class="sheet-input" placeholder="微信号（选填）" bindinput="onWechatInput" value="{{wechatId}}" />
+      <input class="sheet-input" placeholder="联系电话（选填）" bindinput="onPhoneInput" value="{{phoneNumber}}" type="number" />
     </view>
 
     <button class="confirm-btn" disabled="{{!community}}" bindtap="confirmCommunity">确认小区</button>

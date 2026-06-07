@@ -3,6 +3,7 @@
   "packOptions": {
     "ignore": [
       { "type": "folder", "value": "cloudfunctions" },
+      { "type": "folder", "value": "admin-server" },
       { "type": "folder", "value": "测试材料" },
       { "type": "folder", "value": "node_modules" }
     ],

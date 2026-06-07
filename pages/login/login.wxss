@@ -129,6 +129,77 @@
 .auth-btn[disabled] { background: #93B8FF; color: white; box-shadow: none; }
 .auth-btn::after { border: none; }
 
+/* ===== 手机号授权弹窗 ===== */
+.phone-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  z-index: 100;
+  padding: 16px 24px calc(24px + env(safe-area-inset-bottom));
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.sheet-desc {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-bottom: 20px;
+  display: block;
+}
+.phone-auth-btn {
+  width: 100%;
+  height: 50px;
+  border-radius: 10px;
+  background: #1A6EFF;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(26,110,255,0.35);
+}
+.phone-auth-btn:active { opacity: 0.85; }
+.phone-auth-btn::after { border: none; }
+.phone-skip {
+  font-size: 13px;
+  color: #9CA3AF;
+  padding: 8px;
+  display: block;
+}
+.phone-divider {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+}
+.phone-divider::before, .phone-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #EDEDED;
+}
+.phone-divider text {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0 10px;
+}
+.phone-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #ECFDF5;
+  border-radius: 8px;
+}
+.phone-display-label { font-size: 12px; color: #6B7280; }
+.phone-display-value { font-size: 14px; color: #1F2937; font-weight: 600; flex: 1; text-align: left; }
+.phone-display-badge { font-size: 11px; color: #10B981; background: white; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+
 /* ===== 小区选择弹窗 ===== */
 .mask {
   position: fixed;
@@ -264,6 +335,33 @@
   color: #1A6EFF;
   font-weight: 600;
 }
+
+.contact-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.contact-fields .sheet-input {
+  margin-bottom: 0;
+}
+.phone-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  background: #1A6EFF;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: all 0.2s;
+}
+.phone-btn:active { opacity: 0.85; }
+.phone-btn.authed { background: #10B981; }
+.phone-btn::after { border: none; }
 
 .confirm-btn {
   width: 100%;

@@ -7,12 +7,23 @@ Page({
   data: {
     conversations: [],
     icons: icons,
-    unreadCount: 0
+    unreadCount: 0,
+    community: '',
+    userInitial: '',
+    statusBarHeight: util.getSafeArea().statusBarHeight
   },
 
   async onShow() {
+    const user = app.globalData.userInfo;
+    if (!user) { wx.redirectTo({ url: '/pages/login/login' }); return; }
+    this.setData({ community: user.community, userInitial: user.name.charAt(0) });
     await this.loadConversations();
     await this.updateUnread();
+    this._startUnreadTimer();
+  },
+
+  onHide() {
+    this._stopUnreadTimer();
   },
 
   async loadConversations() {
@@ -31,7 +42,20 @@ Page({
     const user = app.globalData.userInfo;
     if (user) {
       const count = await DB.countUnread(user.id);
+      app.globalData.unreadCount = count;
       this.setData({ unreadCount: count });
+    }
+  },
+
+  _startUnreadTimer() {
+    this._stopUnreadTimer();
+    this._unreadTimer = setInterval(() => this.updateUnread(), 30000);
+  },
+
+  _stopUnreadTimer() {
+    if (this._unreadTimer) {
+      clearInterval(this._unreadTimer);
+      this._unreadTimer = null;
     }
   },
 

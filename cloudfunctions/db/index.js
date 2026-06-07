@@ -51,7 +51,7 @@ exports.main = async (event) => {
 const HANDLERS = {
 
   // ----- 用户 -----
-  async getOrCreateUser({ userId, name, community, avatarUrl }) {
+  async getOrCreateUser({ userId, name, community, avatarUrl, wechatId, phone }) {
     // 注入微信 OPENID 作为稳定 userId（不依赖昵称）
     const wxContext = cloud.getWXContext();
     const openid = wxContext.OPENID;
@@ -69,6 +69,11 @@ const HANDLERS = {
         if (user.name === '微信用户') {
           updates.name = (name && name !== '微信用户') ? name : '邻居';
         }
+        // 同步小区（允许用户切换小区）
+        if (community && user.community !== community) updates.community = community;
+        // 同步联系方式
+        if (wechatId && user.wechatId !== wechatId) updates.wechatId = wechatId;
+        if (phone && user.phone !== phone) updates.phone = phone;
         if (Object.keys(updates).length > 0) {
           await db.collection('users').doc(user._id).update({ data: updates });
         }
@@ -90,6 +95,11 @@ const HANDLERS = {
         if (user.name === '微信用户') {
           updates.name = (name && name !== '微信用户') ? name : '邻居';
         }
+        // 同步小区
+        if (community && user.community !== community) updates.community = community;
+        // 同步联系方式
+        if (wechatId && user.wechatId !== wechatId) updates.wechatId = wechatId;
+        if (phone && user.phone !== phone) updates.phone = phone;
         if (Object.keys(updates).length > 0) {
           await db.collection('users').doc(user._id).update({ data: updates });
         }
@@ -104,6 +114,8 @@ const HANDLERS = {
       : '邻居' + String(Math.floor(Math.random() * 10000)).padStart(4, '0');
     const newUser = {
       userId: newId, name: finalName, community, avatarUrl: avatarUrl || '',
+      wechatId: wechatId || '',
+      phone: phone || '',
       createTime: Date.now()
     };
     const res = await db.collection('users').add({ data: newUser });
@@ -119,6 +131,54 @@ const HANDLERS = {
       user.isAdmin = ADMIN_OPENIDS.includes(wxContext.OPENID);
     }
     return user;
+  },
+
+  async updateUserProfile({ userId, wechatId, phone }) {
+    const { data } = await db.collection('users').where({ userId }).limit(1).get();
+    if (data.length === 0) return { success: false, reason: 'not_found' };
+    const updates = {};
+    if (wechatId !== undefined) updates.wechatId = wechatId;
+    if (phone !== undefined) updates.phone = phone;
+    if (Object.keys(updates).length > 0) {
+      await db.collection('users').doc(data[0]._id).update({ data: updates });
+    }
+    return { success: true, ...updates };
+  },
+
+  async getPhoneNumber({ code, encryptedData, iv }) {
+    // 格式1: getPhoneNumber (旧 API) → encryptedData + iv，云 SDK 自动解密
+    if (encryptedData && iv) {
+      try {
+        const result = await cloud.getOpenData({
+          list: [{
+            weRunData: encryptedData,
+            userInfo: iv
+          }]
+        });
+        console.log('[getPhoneNumber] getOpenData 格式1:', JSON.stringify(result));
+        if (result.data && result.data[0] && result.data[0].phoneNumber) {
+          return { phoneNumber: result.data[0].phoneNumber };
+        }
+      } catch (e) {
+        console.warn('[getPhoneNumber] 格式1 失败:', e.message);
+      }
+    }
+
+    // 格式2: choosePhoneNumber (新 API) → code
+    if (code) {
+      try {
+        const result = await cloud.getOpenData({ list: [code] });
+        console.log('[getPhoneNumber] getOpenData 格式2:', JSON.stringify(result));
+        if (result.data && result.data[0] && result.data[0].phoneNumber) {
+          return { phoneNumber: result.data[0].phoneNumber };
+        }
+      } catch (e) {
+        console.warn('[getPhoneNumber] 格式2 失败:', e.message);
+      }
+    }
+
+    console.warn('[getPhoneNumber] 无法解析手机号');
+    return { phoneNumber: null };
   },
 
   async getUserById({ id }) {
@@ -154,9 +214,9 @@ const HANDLERS = {
     const { data } = await db.collection('items')
       .where({ status: 'available' }).orderBy('createTime', 'desc').get();
     let filtered = data;
-    // 按小区过滤（兼容无 community 字段的老物品）
+    // 严格按小区筛选：只显示同小区的物品
     if (community) {
-      filtered = data.filter(i => !i.community || i.community === community);
+      filtered = data.filter(i => i.community === community);
     }
     if (category && category !== 'all') {
       filtered = filtered.filter(i => i.category === category);

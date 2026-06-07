@@ -138,6 +138,106 @@ function callTIIA(imageBase64, secretId, secretKey) {
   });
 }
 
+// ===== 调用混元大模型 Vision =====
+// 使用 hunyuan-vision 模型直接理解图片内容，返回结构化 JSON
+function callHunyuanVision(imageBase64, title, secretId, secretKey) {
+  return new Promise((resolve, reject) => {
+    const service = 'hunyuan';
+    const action = 'ChatCompletions';
+    const version = '2024-06-01';
+    const region = 'ap-guangzhou';
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const prompt = `你是一个社区旧物分享平台的AI助手。请分析这张图片中的旧物，提取信息并以JSON格式返回：
+{
+  "category": "物品类别（从以下选一）：家具家居、电子产品、书籍文具、服饰鞋包、母婴儿童、运动户外、厨房用具、日用百货、植物花卉、其他",
+  "condition": "物品成色：全新、几乎全新、九成新、八成新、七成新、有瑕疵",
+  "description": "简短自然的物品描述，30字以内",
+  "title": "物品名称，10字以内"
+}
+只返回JSON，不要其他文字。${title ? '标题参考：' + title : ''}`;
+
+    const payload = {
+      Model: 'hunyuan-vision',
+      Messages: [{
+        Role: 'user',
+        Content: [
+          { Type: 'text', Text: prompt },
+          { Type: 'image_url', ImageUrl: { Url: 'data:image/jpeg;base64,' + imageBase64 } }
+        ]
+      }],
+      Stream: false
+    };
+
+    const sig = signRequest(secretId, secretKey, service, action, version, region, payload, timestamp);
+
+    const options = {
+      hostname: service + '.tencentcloudapi.com',
+      port: 443,
+      path: '/',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Host': service + '.tencentcloudapi.com',
+        'X-TC-Action': action,
+        'X-TC-Timestamp': timestamp,
+        'X-TC-Version': version,
+        'X-TC-Region': region,
+        'Authorization': sig.authorization,
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (parsed.Response && parsed.Response.Error) {
+            reject(new Error(parsed.Response.Error.Message));
+          } else {
+            resolve(parsed.Response || parsed);
+          }
+        } catch (e) {
+          reject(new Error('parse failed: ' + body.slice(0, 200)));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(sig.payloadStr);
+    req.end();
+  });
+}
+
+// ===== 解析混元响应 =====
+function parseHunyuanResult(response, title) {
+  let content = '';
+  try {
+    content = response.Choices?.[0]?.Message?.Content || '';
+  } catch (e) {
+    throw new Error('无法解析混元响应');
+  }
+
+  // 提取 JSON
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('混元未返回有效JSON');
+  let data;
+  try { data = JSON.parse(jsonMatch[0]); } catch (e) { throw new Error('混元JSON解析失败'); }
+
+  // 校验类别
+  const validCats = CATEGORIES.map(c => c.name);
+  const category = validCats.includes(data.category) ? data.category : '';
+
+  // 校验成色
+  const validConds = ['全新', '几乎全新', '九成新', '八成新', '七成新', '有瑕疵'];
+  const condition = validConds.includes(data.condition) ? data.condition : '';
+  const desc = data.description || '';
+  const suggestedTitle = data.title || '';
+
+  return { category, condition, description: desc, suggestedTitle };
+}
+
 // ===== AI 标签 → 分类映射 =====
 function mapLabelsToCategory(labels) {
   const labelNames = labels.map(l => (l.Name || '').toLowerCase());
@@ -272,45 +372,72 @@ exports.main = async (event, context) => {
 
     // 有密钥 → 使用真实 AI
     if (secretId && secretKey) {
+      let imageBase64 = null;
       try {
         const dlRes = await cloud.downloadFile({ fileID });
-        const buffer = dlRes.fileContent;
-        const imageBase64 = buffer.toString('base64');
+        imageBase64 = dlRes.fileContent.toString('base64');
+      } catch (dlErr) {
+        console.warn('[classifyImage] download failed:', dlErr.message);
+      }
 
-        const result = await callTIIA(imageBase64, secretId, secretKey);
-        const labels = result.Labels || [];
-        const { category, confidence } = mapLabelsToCategory(labels);
-        const labelWords = labels.map(l => (l.Name || '').toLowerCase());
-        // 取置信度最高的标签名作为建议标题
-        const bestLabel = labels.length > 0 ? labels.reduce((a, b) => (a.Confidence || 0) > (b.Confidence || 0) ? a : b).Name || '' : '';
-        const condition = guessCondition(labelWords) || '几乎全新';
-        const desc = generateDescription(category, condition, title || bestLabel);
+      if (imageBase64) {
+        // === 第一优先：混元大模型 Vision ===
+        try {
+          const hyRes = await callHunyuanVision(imageBase64, title, secretId, secretKey);
+          const parsed = parseHunyuanResult(hyRes, title);
+          if (parsed.category) {
+            const condition = parsed.condition || '几乎全新';
+            const desc = parsed.description || generateDescription(parsed.category, condition, title || parsed.suggestedTitle);
+            return {
+              code: 0,
+              category: parsed.category,
+              confidence: '95%',
+              condition,
+              description: desc,
+              suggestedTitle: parsed.suggestedTitle || '',
+              note: '已使用混元大模型识别'
+            };
+          }
+        } catch (hyErr) {
+          console.error('[classifyImage] 混元识别失败，降级至 TIIA:', hyErr.message);
+        }
 
-        return {
-          code: 0,
-          category,
-          confidence: confidence + '%',
-          condition,
-          description: desc,
-          suggestedTitle: bestLabel,
-          note: '已使用腾讯云 AI 图像识别'
-        };
-      } catch (aiErr) {
-        console.error('[classifyImage] AI call failed:', aiErr.message);
-        // AI 失败时尝试用标题匹配 + 文件名补充
-        const titleResult = classifyByTitle(title);
-        if (titleResult.category) {
-          const desc = generateDescription(titleResult.category, titleResult.condition, title);
+        // === 第二优先：TIIA DetectLabel ===
+        try {
+          const result = await callTIIA(imageBase64, secretId, secretKey);
+          const labels = result.Labels || [];
+          const { category, confidence } = mapLabelsToCategory(labels);
+          const labelWords = labels.map(l => (l.Name || '').toLowerCase());
+          const bestLabel = labels.length > 0 ? labels.reduce((a, b) => (a.Confidence || 0) > (b.Confidence || 0) ? a : b).Name || '' : '';
+          const condition = guessCondition(labelWords) || '几乎全新';
+          const desc = generateDescription(category, condition, title || bestLabel);
+
           return {
             code: 0,
-            category: titleResult.category,
-            confidence: '70%',
-            condition: titleResult.condition,
+            category,
+            confidence: confidence + '%',
+            condition,
             description: desc,
-            note: 'AI 识别暂不可用（' + aiErr.message + '），已根据标题关键词匹配'
+            suggestedTitle: bestLabel,
+            note: '已使用腾讯云 AI 图像识别'
           };
+        } catch (aiErr) {
+          console.error('[classifyImage] TIIA call failed:', aiErr.message);
+          // TIIA 失败时尝试用标题匹配 + 文件名补充
+          const titleResult = classifyByTitle(title);
+          if (titleResult.category) {
+            const desc = generateDescription(titleResult.category, titleResult.condition, title);
+            return {
+              code: 0,
+              category: titleResult.category,
+              confidence: '70%',
+              condition: titleResult.condition,
+              description: desc,
+              note: 'AI 识别暂不可用（' + aiErr.message + '），已根据标题关键词匹配'
+            };
+          }
+          throw aiErr;
         }
-        throw aiErr; // 标题也无信息，继续降级
       }
     }
 

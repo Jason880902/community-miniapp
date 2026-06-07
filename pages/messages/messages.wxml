@@ -1,7 +1,13 @@
 <view class="page">
   <view class="page-inner">
-    <view class="nav-bar">
-      <text class="nav-title">消息</text>
+    <view class="header" style="padding-top: {{statusBarHeight + 16}}px">
+      <view class="header-left">
+        <text class="header-title">邻里</text>
+        <text class="header-location">{{community}}</text>
+      </view>
+      <view class="header-right" bindtap="goProfile">
+        <text class="header-avatar">{{userInitial}}</text>
+      </view>
     </view>
 
     <!-- 消息横幅 -->

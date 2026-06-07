@@ -171,12 +171,39 @@
 .owner-info { flex: 1; }
 .owner-name { font-size: 15px; font-weight: 600; display: block; color: #1F2937; }
 .owner-community { font-size: 12px; color: #9CA3AF; display: block; margin-top: 3px; }
+.owner-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  background: #F0FDF4;
+  border-radius: 12px;
+}
+.owner-stats-num { font-size: 20px; font-weight: 800; color: #10B981; line-height: 1.1; }
+.owner-stats-label { font-size: 11px; color: #6B7280; }
 
 /* ===== 8px 灰色分割区（对齐 Flutter） ===== */
 .section-gap {
   height: 8px;
   background: #F7F8FA;
 }
+
+/* ===== 物主联系方式 ===== */
+.detail-section-contact {
+  background: white;
+  padding: 4px 16px;
+}
+.detail-section-contact .contact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+.detail-section-contact .contact-row:last-child { border-bottom: none; }
+.detail-section-contact .contact-label { font-size: 13px; color: #6B7280; }
+.detail-section-contact .contact-value { font-size: 14px; color: #1F2937; font-weight: 500; }
 
 /* ===== 详情标签（Flutter 风格） ===== */
 .detail-tag-chip {
@@ -253,6 +280,67 @@
 .request-btn.reject { background: #F3F4F6; color: #6B7280; }
 .request-btn.reject:active { background: #E5E7EB; }
 .request-btn::after { border: none; }
+
+/* ===== 相似物品（横向滚动） ===== */
+.similar-section {
+  background: white;
+  padding: 16px;
+}
+.similar-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+  display: block;
+  margin-bottom: 12px;
+}
+.similar-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.similar-scroll::-webkit-scrollbar { display: none; }
+.similar-item {
+  display: inline-flex;
+  flex-direction: column;
+  width: 130px;
+  flex-shrink: 0;
+  margin-right: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #F9FAFB;
+}
+.similar-image {
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.similar-placeholder { display: flex; align-items: center; justify-content: center; }
+.similar-cat { font-size: 16px; font-weight: 600; opacity: 0.8; }
+.similar-info { padding: 8px 10px 10px; }
+.similar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1F2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 110px;
+}
+.similar-meta {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 4px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ===== 底部操作按钮（Flutter 83h 设计） ===== */
 .detail-actions {

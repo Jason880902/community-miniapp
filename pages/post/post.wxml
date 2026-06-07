@@ -1,6 +1,6 @@
 <view class="page">
   <view class="page-inner">
-  <view class="nav-bar">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight + 16}}px">
     <view class="nav-back" bindtap="goBack">
       <image class="nav-back-icon" src="/images/arrowleft.png" mode="aspectFit" />
     </view>

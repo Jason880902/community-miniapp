@@ -1,90 +1,82 @@
 <view class="page">
-  <view class="page-inner">
-    <!-- 顶部信息栏 -->
-    <view class="header">
-      <view class="header-left">
-        <text class="header-title">邻里</text>
-        <text class="header-location">{{community}}</text>
-      </view>
-      <view class="header-right" bindtap="goProfile">
-        <text class="header-msg" wx:if="{{unreadCount > 0}}" catchtap="goMessages">{{unreadCount}}</text>
-        <text class="header-avatar">{{userInitial}}</text>
-      </view>
+  <!-- 顶部信息栏 -->
+  <view class="header" style="padding-top: {{statusBarHeight + 16}}px">
+    <view class="header-left">
+      <text class="header-title">邻里</text>
+      <text class="header-location">{{community}}</text>
     </view>
-
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <image class="search-icon" src="/images/search.png" mode="aspectFit" />
-      <input class="search-input" placeholder="搜索物品名称…" bindinput="onSearch" />
+    <view class="header-right" bindtap="goProfile">
+      <text class="header-msg" wx:if="{{unreadCount > 0}}" catchtap="goMessages">{{unreadCount}}</text>
+      <text class="header-avatar">{{userInitial}}</text>
     </view>
+  </view>
 
-    <!-- 分类标签 - 百叶窗折叠 -->
-    <view class="category-wrap">
-      <view class="category-list">
-        <view class="category-indicator" style="left: {{indicatorLeft}}px; width: {{indicatorWidth}}px;"></view>
-        <view
-          class="category-item {{selectedCat === 'all' ? 'active' : ''}}"
-          data-cat="all"
-          data-index="0"
-          bindtap="filterCategory">全部</view>
-        <view
-          class="category-item {{selectedCat === item ? 'active' : ''}}"
-          wx:for="{{categories}}"
-          wx:key="*this"
-          data-cat="{{item}}"
-          data-index="{{index + 1}}"
-          bindtap="filterCategory">{{item}}</view>
-      </view>
-    </view>
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <image class="search-icon" src="/images/search.png" mode="aspectFit" />
+    <input class="search-input" placeholder="搜索物品名称…" bindinput="onSearch" />
+  </view>
 
-    <!-- 单双排切换 -->
-    <view class="column-toggle">
-      <view class="toggle-btn {{columnMode === 'single' ? 'active' : ''}}" bindtap="toggleColumn" data-mode="single">单排</view>
-      <view class="toggle-btn {{columnMode === 'double' ? 'active' : ''}}" bindtap="toggleColumn" data-mode="double">双排</view>
-    </view>
+  <!-- 主体区域：左右分栏 -->
+  <view class="main-area">
+    <!-- 左侧分类栏 -->
+    <scroll-view class="left-sidebar" scroll-y enhanced show-scrollbar="{{false}}">
+      <view
+        class="sidebar-item {{selectedCat === 'all' ? 'active' : ''}}"
+        data-cat="all"
+        bindtap="filterCategory">全部</view>
+      <view
+        class="sidebar-item {{selectedCat === item ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="*this"
+        data-cat="{{item}}"
+        bindtap="filterCategory">{{item}}</view>
+    </scroll-view>
 
-    <!-- 骨架屏（加载中） -->
-    <view wx:if="{{loading}}" class="items-grid">
-      <view class="item-card" wx:for="{{[1,2,3]}}" wx:key="*this">
-        <view class="item-image skeleton"></view>
-        <view class="item-info">
-          <view class="skeleton" style="height:14px;width:75%;margin-bottom:8px;border-radius:6px;"></view>
-          <view class="skeleton" style="height:10px;width:55%;margin-bottom:10px;border-radius:6px;"></view>
-          <view style="display:flex;gap:4px;">
-            <view class="skeleton" style="height:16px;width:40px;border-radius:999px;"></view>
-            <view class="skeleton" style="height:16px;width:32px;border-radius:999px;"></view>
+    <!-- 右侧物品区 -->
+    <scroll-view class="right-panel" scroll-y enhanced show-scrollbar="{{false}}">
+      <!-- 骨架屏 -->
+      <view wx:if="{{loading}}" class="items-grid">
+        <view class="item-card" wx:for="{{[1,2,3]}}" wx:key="*this">
+          <view class="item-image skeleton"></view>
+          <view class="item-info">
+            <view class="skeleton" style="height:14px;width:75%;margin-bottom:8px;border-radius:6px;"></view>
+            <view class="skeleton" style="height:10px;width:55%;margin-bottom:10px;border-radius:6px;"></view>
+            <view style="display:flex;gap:4px;">
+              <view class="skeleton" style="height:16px;width:40px;border-radius:999px;"></view>
+              <view class="skeleton" style="height:16px;width:32px;border-radius:999px;"></view>
+            </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 物品列表 -->
-    <view wx:elif="{{items.length > 0}}" class="items-grid {{columnMode === 'double' ? 'double' : ''}}">
-      <view class="item-card fold-in" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail" style="animation-delay: {{index * 0.05}}s">
-        <image wx:if="{{item.images && item.images.length > 0}}" class="item-image" src="{{item.images[item.coverIndex || 0]}}" mode="aspectFill" />
-        <view wx:else class="item-image item-image-placeholder" style="background-color: {{item.catColor.bg}}">
-          <text class="item-cat-label" style="color: {{item.catColor.text}}">{{item.category}}</text>
-        </view>
-        <view class="item-info">
-          <text class="item-title">{{item.title}}</text>
-          <view class="item-meta">
-            <text class="item-owner">{{item.ownerName}}</text>
-            <text class="item-time">{{item.time}}</text>
+      <!-- 物品列表 -->
+      <view wx:elif="{{items.length > 0}}" class="items-grid">
+        <view class="item-card" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
+          <image wx:if="{{item.images && item.images.length > 0}}" class="item-image" src="{{item.images[item.coverIndex || 0]}}" mode="aspectFill" />
+          <view wx:else class="item-image item-image-placeholder" style="background-color: {{item.catColor.bg}}">
+            <text class="item-cat-label" style="color: {{item.catColor.text}}">{{item.category}}</text>
           </view>
-          <view class="item-tags">
-            <text class="tag category">{{item.category}}</text>
-            <text class="tag condition">{{item.condition}}</text>
+          <view class="item-info">
+            <text class="item-title">{{item.title}}</text>
+            <view class="item-meta">
+              <text class="item-owner">{{item.ownerName}}</text>
+              <text class="item-time">{{item.time}}</text>
+            </view>
+            <view class="item-tags">
+              <text class="tag condition" style="background:{{item.conditionColor.bg}};color:{{item.conditionColor.text}}">{{item.condition}}</text>
+            </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 空状态 -->
-    <view wx:else class="empty-wrap">
-      <text class="empty-emoji">📦</text>
-      <text class="empty-title">暂无物品</text>
-      <text class="empty-sub">试试切换其他分类，或者成为第一个分享者 🎉</text>
-    </view>
+      <!-- 空状态 -->
+      <view wx:else class="empty-wrap">
+        <text class="empty-emoji">📦</text>
+        <text class="empty-title">暂无物品</text>
+        <text class="empty-sub">试试切换其他分类</text>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 底部标签栏 -->
